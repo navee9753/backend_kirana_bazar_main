@@ -5,9 +5,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
@@ -16,14 +17,21 @@ import java.util.List;
 @Component
 public class JwtTokenProvider {
 
-    private static final long EXPIRATION_MS = 24 * 60 * 60 * 1000L;
-    private static final String SECRET_KEY = "kirana-inventory-local-secret-key-32-bytes-long!";
+    private static final long DEFAULT_EXPIRATION_MS = 24 * 60 * 60 * 1000L;
 
-    private Key key;
+    private final Key key;
+    private final long expirationMs;
 
-    @PostConstruct
-    public void init() {
-        this.key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+    public JwtTokenProvider(@Value("${app.jwt.secret}") String secret,
+                            @Value("${app.jwt.expiration-ms:86400000}") long expirationMs) {
+        if (secret == null || secret.trim().isEmpty()) {
+            throw new IllegalStateException("app.jwt.secret must be configured via environment variables");
+        }
+        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("app.jwt.secret must be at least 32 bytes long");
+        }
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.expirationMs = expirationMs > 0 ? expirationMs : DEFAULT_EXPIRATION_MS;
     }
 
     public String generateToken(User user) {
@@ -34,7 +42,7 @@ public class JwtTokenProvider {
                 .claim("role", role)
                 .claim("authorities", List.of("ROLE_" + role))
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -45,8 +53,8 @@ public class JwtTokenProvider {
         }
 
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
+            Jwts.parser()
+                    .verifyWith((SecretKey) key)
                     .build()
                     .parseClaimsJws(token);
             return true;
@@ -56,8 +64,8 @@ public class JwtTokenProvider {
     }
 
     public Claims getClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
+        return Jwts.parser()
+                .verifyWith((SecretKey) key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

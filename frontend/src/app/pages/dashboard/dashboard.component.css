@@ -1,0 +1,120 @@
+.page-shell {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.page-head h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate-500);
+}
+
+.action-button {
+  border: 0;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+  color: white;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-4);
+}
+
+.stat-card {
+  display: grid;
+  gap: 10px;
+  padding: 20px 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.stat-card span {
+  color: var(--slate-500);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.stat-card strong {
+  font-size: clamp(1.5rem, 2vw, 2.1rem);
+}
+
+.stat-card.primary { border-left: 6px solid var(--brand-500); }
+.stat-card.warning { border-left: 6px solid var(--warning-500); }
+.stat-card.success { border-left: 6px solid var(--success-500); }
+.stat-card.neutral { border-left: 6px solid var(--info-500); }
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-5);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.panel-head h3 {
+  margin: 0 0 16px;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  color: var(--slate-700);
+}
+
+.task-list li {
+  padding-left: 18px;
+  position: relative;
+}
+
+.task-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--brand-500);
+  font-size: 1.4rem;
+}
+
+.list-stack {
+  display: grid;
+  gap: 12px;
+}
+
+.line-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--slate-50);
+  border: 1px solid var(--border);
+}

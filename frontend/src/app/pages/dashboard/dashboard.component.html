@@ -1,0 +1,47 @@
+<section class="page-shell">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Overview</p>
+      <h2>Daily operations</h2>
+    </div>
+    <button type="button" class="action-button">+ Add sale</button>
+  </header>
+
+  <div class="stats-grid">
+    <article class="stat-card" *ngFor="let stat of stats" [ngClass]="stat.tone">
+      <span>{{ stat.label }}</span>
+      <strong>{{ stat.value }}</strong>
+    </article>
+  </div>
+
+  <div class="content-grid">
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Today’s focus</h3>
+      </div>
+      <ul class="task-list">
+        <li *ngFor="let task of tasks">{{ task }}</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Fast movers</h3>
+      </div>
+      <div class="list-stack">
+        <div class="line-item">
+          <span>Rice bags</span>
+          <strong>34</strong>
+        </div>
+        <div class="line-item">
+          <span>Tea leaves</span>
+          <strong>18</strong>
+        </div>
+        <div class="line-item">
+          <span>Cooking oil</span>
+          <strong>11</strong>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>

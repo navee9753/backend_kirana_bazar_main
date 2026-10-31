@@ -1,0 +1,40 @@
+<section class="page-shell">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Inventory</p>
+      <h2>Stock control</h2>
+    </div>
+    <a routerLink="/inventory/new" class="action-button">+ Add item</a>
+  </header>
+
+  <div class="panel">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Brand</th>
+            <th>Stock</th>
+            <th>Min</th>
+            <th>Purchase</th>
+            <th>MRP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of inventory">
+            <td>{{ item.name }}</td>
+            <td>{{ item.brand }}</td>
+            <td>
+              <span class="stock-pill" [class.low]="item.stock <= item.min">
+                {{ item.stock }}
+              </span>
+            </td>
+            <td>{{ item.min }}</td>
+            <td>₹{{ item.purchase }}</td>
+            <td>₹{{ item.mrp }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

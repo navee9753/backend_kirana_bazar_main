@@ -1,0 +1,98 @@
+<section class="page-shell">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Inventory</p>
+      <h2>Add product</h2>
+    </div>
+    <a routerLink="/inventory" class="secondary-button">Back</a>
+  </header>
+
+  <form class="panel form-panel" (ngSubmit)="onSubmit()">
+    <div class="section">
+      <h3>Basics</h3>
+      <div class="field-grid">
+        <label>
+          <span>Name</span>
+          <input type="text" [(ngModel)]="model.name" name="name" placeholder="e.g. Aashirvaad Atta" required />
+        </label>
+
+        <label>
+          <span>Brand</span>
+          <input type="text" [(ngModel)]="model.brand" name="brand" placeholder="Brand name" />
+        </label>
+
+        <label>
+          <span>Category</span>
+          <input type="text" [(ngModel)]="model.category" name="category" />
+        </label>
+
+        <label>
+          <span>Unit</span>
+          <select [(ngModel)]="model.unit" name="unit">
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="L">L</option>
+            <option value="ml">ml</option>
+            <option value="piece">piece</option>
+            <option value="pack">pack</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Pricing and stock</h3>
+      <div class="field-grid">
+        <label>
+          <span>Cost price</span>
+          <input type="number" [(ngModel)]="model.costPrice" name="costPrice" min="0" step="0.01" />
+        </label>
+
+        <label>
+          <span>MRP</span>
+          <input type="number" [(ngModel)]="model.mrp" name="mrp" min="0" step="0.01" />
+        </label>
+
+        <label>
+          <span>Sale price</span>
+          <input type="number" [(ngModel)]="model.salePrice" name="salePrice" min="0" step="0.01" />
+        </label>
+
+        <label>
+          <span>Opening stock</span>
+          <input type="number" [(ngModel)]="model.currentStock" name="currentStock" min="0" step="1" />
+        </label>
+
+        <label>
+          <span>Minimum alert</span>
+          <input type="number" [(ngModel)]="model.minStockAlert" name="minStockAlert" min="0" step="1" />
+        </label>
+
+        <div class="inline-stat">
+          <span>Margin</span>
+          <strong>{{ marginPercent | number: '1.0-1' }}%</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Identifiers</h3>
+      <div class="field-grid">
+        <label>
+          <span>SKU</span>
+          <input type="text" [(ngModel)]="model.sku" name="sku" placeholder="AUTO-001" />
+        </label>
+
+        <label>
+          <span>HSN</span>
+          <input type="text" [(ngModel)]="model.hsn" name="hsn" placeholder="1001" />
+        </label>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="secondary-button">Save draft</button>
+      <button type="submit" class="primary-button">Save product</button>
+    </div>
+  </form>
+</section>

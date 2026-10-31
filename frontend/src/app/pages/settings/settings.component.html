@@ -1,0 +1,18 @@
+<section class="page-shell">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Settings</p>
+      <h2>Store preferences</h2>
+    </div>
+    <button type="button" class="action-button">Save</button>
+  </header>
+
+  <div class="settings-grid">
+    <article class="panel" *ngFor="let item of settings">
+      <div class="setting-row">
+        <span>{{ item.label }}</span>
+        <strong>{{ item.value }}</strong>
+      </div>
+    </article>
+  </div>
+</section>

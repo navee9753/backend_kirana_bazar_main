@@ -1,0 +1,36 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand-block">
+      <div class="brand-mark">K</div>
+      <div>
+        <p class="eyebrow">Kirana</p>
+        <h1>StoreOps</h1>
+      </div>
+    </div>
+
+    <nav class="nav-list" aria-label="Sidebar navigation">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+      >
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span>{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <button type="button" class="logout-button" (click)="logout()">Logout</button>
+  </aside>
+
+  <main class="content-area">
+    <router-outlet></router-outlet>
+  </main>
+
+  <nav class="mobile-nav" aria-label="Bottom navigation">
+    <a *ngFor="let item of navItems" [routerLink]="item.path" routerLinkActive="active">
+      <span>{{ item.icon }}</span>
+      <small>{{ item.label }}</small>
+    </a>
+  </nav>
+</div>

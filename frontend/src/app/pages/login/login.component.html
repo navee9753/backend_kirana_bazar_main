@@ -1,0 +1,28 @@
+<div class="login-page">
+  <div class="login-card">
+    <div class="brand-header">
+      <span class="brand-pill">Kirana</span>
+      <h1>StoreOps</h1>
+      <p>Manage stock, counters, and khata with a cleaner daily workflow.</p>
+    </div>
+
+    <form class="login-form" (ngSubmit)="onSubmit()">
+      <div class="role-switch" role="tablist" aria-label="Role selector">
+        <button type="button" [class.active]="model.role === 'ADMIN'" (click)="model.role = 'ADMIN'">Admin</button>
+        <button type="button" [class.active]="model.role === 'WORKER'" (click)="model.role = 'WORKER'">Worker</button>
+      </div>
+
+      <label>
+        <span>Phone number</span>
+        <input type="tel" [(ngModel)]="model.phoneNumber" name="phoneNumber" placeholder="9876543210" required />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input type="password" [(ngModel)]="model.password" name="password" placeholder="Enter password" required />
+      </label>
+
+      <button type="submit" class="primary-button">Login</button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="2" author="copilot">
+        <insert tableName="users">
+            <column name="user_id" value="admin-001"/>
+            <column name="phone_number" value="9876543210"/>
+            <column name="password_hash" value="admin123"/>
+            <column name="role" value="ROLE_ADMIN"/>
+        </insert>
+
+        <insert tableName="users">
+            <column name="user_id" value="worker-001"/>
+            <column name="phone_number" value="9876543211"/>
+            <column name="password_hash" value="worker123"/>
+            <column name="role" value="ROLE_WORKER"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

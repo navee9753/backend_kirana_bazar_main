@@ -1,0 +1,320 @@
+<div class="app-shell" *ngIf="!isLoggedIn; else dashboardView">
+  <div class="login-card">
+    <div class="login-branding">
+      <p class="eyebrow">Secure Access</p>
+      <h1>Kirana Operations</h1>
+      <p class="login-subtitle">Manage inventory, khata balances, and stock alerts with role-based access.</p>
+    </div>
+
+    <form class="login-form" (ngSubmit)="onLogin()">
+      <div class="role-toggle">
+        <button type="button" class="role-btn" [class.active]="loginForm.role === 'ADMIN'" (click)="setRole('ADMIN')">Admin</button>
+        <button type="button" class="role-btn" [class.active]="loginForm.role === 'WORKER'" (click)="setRole('WORKER')">Worker</button>
+      </div>
+
+      <label>
+        <span>Phone Number</span>
+        <input type="text" [(ngModel)]="loginForm.phoneNumber" name="phoneNumber" placeholder="9876543210" required>
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input type="password" [(ngModel)]="loginForm.password" name="password" placeholder="Enter password" required>
+      </label>
+
+      <button type="submit" class="primary-btn full-width">Login</button>
+    </form>
+  </div>
+</div>
+
+<ng-template #dashboardView>
+  <div class="dashboard-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Operations Overview</p>
+        <h1>Kirana Inventory Management</h1>
+      </div>
+
+      <div class="header-actions">
+        <span class="role-badge">{{ userRole }}</span>
+        <button type="button" class="ghost-btn" (click)="exportSnapshot()" *ngIf="canManageInventory()">Export</button>
+        <button type="button" class="ghost-btn" (click)="importSnapshot()" *ngIf="canManageInventory()">Import</button>
+        <button type="button" class="ghost-btn danger" (click)="onLogout()">Logout</button>
+      </div>
+    </header>
+
+    <nav class="tab-nav" aria-label="Main navigation">
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">Overview</button>
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'inventory'" (click)="activeTab = 'inventory'">Inventory</button>
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'khata'" (click)="activeTab = 'khata'">Khata</button>
+      <button type="button" class="tab-btn" [class.active]="activeTab === 'analysis'" (click)="activeTab = 'analysis'" *ngIf="canAccessAnalysis()">Analysis</button>
+    </nav>
+
+    <div class="festival-banner" role="alert">
+      <div class="festival-icon">🎉</div>
+      <div class="festival-content">
+        <span class="festival-label">{{ festivalAlert.festival }}</span>
+        <strong>{{ festivalAlert.daysLeft }} days to go</strong>
+        <p>{{ festivalAlert.message }}</p>
+      </div>
+    </div>
+
+    <section class="stats-grid" aria-label="Inventory summary" *ngIf="activeTab === 'overview'">
+      <div class="stat-card">
+        <span>Total Products</span>
+        <strong>{{ dashboardSummary.totalProducts || products.length }}</strong>
+      </div>
+      <div class="stat-card warn">
+        <span>Low Stock</span>
+        <strong>{{ lowStockCount() }}</strong>
+      </div>
+      <div class="stat-card accent">
+        <span>Inventory Value</span>
+        <strong>{{ totalInventoryValue() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+      </div>
+      <div class="stat-card neutral">
+        <span>Outstanding</span>
+        <strong>{{ totalOutstandingBalance() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+      </div>
+      <div class="stat-card neutral">
+        <span>Khata Entries</span>
+        <strong>{{ khataEntriesCount() }}</strong>
+      </div>
+    </section>
+
+    <section class="role-panel" *ngIf="activeTab === 'overview'">
+      <div class="focus-card">
+        <div class="panel-head">
+          <h2>{{ isAdmin() ? 'Admin command center' : 'Worker focus board' }}</h2>
+        </div>
+
+        <ul class="task-list" *ngIf="isAdmin()">
+          <li>Review low-stock items and trigger new purchase planning.</li>
+          <li>Check festival demand against current stock coverage.</li>
+          <li>Monitor khata balances and follow up on large outstanding entries.</li>
+          <li>Validate pricing, combo profitability, and margin targets.</li>
+        </ul>
+
+        <ul class="task-list" *ngIf="!isAdmin()">
+          <li>Check shelf stock levels and refill fast-moving categories.</li>
+          <li>Update khata entries for today’s customer receipts.</li>
+          <li>Call out any items that have crossed minimum stock alert.</li>
+          <li>Confirm festival demand lists with the supervisor.</li>
+        </ul>
+      </div>
+
+      <div class="focus-card accent-panel">
+        <div class="panel-head">
+          <h2>{{ isAdmin() ? 'Priority actions' : 'Today’s checklist' }}</h2>
+        </div>
+
+        <div class="mini-grid">
+          <div class="mini-stat">
+            <span>Fast moving</span>
+            <strong>{{ products.slice(0, 3).length || 3 }}</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Alerts</span>
+            <strong>{{ lowStockCount() }}</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Khata</span>
+            <strong>{{ totalOutstandingBalance() | currency: 'INR' : 'symbol' : '1.0-0' }}</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="content-grid" *ngIf="activeTab === 'inventory'">
+      <section class="panel" *ngIf="canManageInventory()">
+        <div class="panel-head">
+          <h2>Add New Stock</h2>
+        </div>
+
+        <form (ngSubmit)="onProductSubmit()" class="stack-form">
+          <div class="field-grid">
+            <label>
+              <span>Name</span>
+              <input type="text" [(ngModel)]="productForm.name" name="name" placeholder="e.g. Aashirvaad Atta" required>
+            </label>
+            <label>
+              <span>Brand</span>
+              <input type="text" [(ngModel)]="productForm.brand" name="brand" placeholder="e.g. Aashirvaad" required>
+            </label>
+            <label>
+              <span>Category</span>
+              <input type="text" [(ngModel)]="productForm.category" name="category" placeholder="Grocery">
+            </label>
+            <label>
+              <span>Current Stock</span>
+              <input type="number" [(ngModel)]="productForm.currentStock" name="currentStock" min="0" required>
+            </label>
+            <label>
+              <span>Minimum Alert</span>
+              <input type="number" [(ngModel)]="productForm.minStockAlert" name="minStockAlert" min="0" required>
+            </label>
+            <label>
+              <span>Purchase Price</span>
+              <input type="number" [(ngModel)]="productForm.purchasePrice" name="purchasePrice" min="0" step="0.01" required>
+            </label>
+            <label>
+              <span>MRP</span>
+              <input type="number" [(ngModel)]="productForm.mrp" name="mrp" min="0" step="0.01" required>
+            </label>
+          </div>
+
+          <button type="submit" class="primary-btn">Save Stock Entry</button>
+        </form>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-head">
+          <h2>Inventory Snapshot</h2>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Brand</th>
+                <th>Category</th>
+                <th>Stock</th>
+                <th>Min Alert</th>
+                <th>Purchase</th>
+                <th>MRP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of products">
+                <td>{{ item.name }}</td>
+                <td>{{ item.brand }}</td>
+                <td>{{ item.category || 'General' }}</td>
+                <td>
+                  <span class="stock-pill" [class.low-stock]="item.currentStock <= item.minStockAlert">
+                    {{ item.currentStock }}
+                  </span>
+                </td>
+                <td>{{ item.minStockAlert }}</td>
+                <td>{{ item.purchasePrice | currency: 'INR' : 'symbol' : '1.2-2' }}</td>
+                <td>{{ item.mrp | currency: 'INR' : 'symbol' : '1.2-2' }}</td>
+              </tr>
+              <tr *ngIf="products.length === 0">
+                <td colspan="7" class="empty-state">No inventory records found. Add a new stock item to get started.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="content-grid" *ngIf="activeTab === 'khata'">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Khata Entry</h2>
+        </div>
+
+        <form (ngSubmit)="onKhataSubmit()" class="stack-form">
+          <div class="field-grid compact">
+            <label>
+              <span>Customer</span>
+              <input type="text" [(ngModel)]="khataForm.customerName" name="customerName" placeholder="e.g. Ravi Kumar" required>
+            </label>
+            <label>
+              <span>Phone</span>
+              <input type="text" [(ngModel)]="khataForm.phoneNumber" name="phoneNumber" placeholder="9876543210">
+            </label>
+            <label>
+              <span>Outstanding</span>
+              <input type="number" [(ngModel)]="khataForm.outstandingBalance" name="outstandingBalance" min="0" step="0.01" required>
+            </label>
+          </div>
+
+          <button type="submit" class="secondary-btn">Save Khata</button>
+        </form>
+      </section>
+
+      <section class="panel wide-panel">
+        <div class="panel-head">
+          <h2>Digital Khata Overview</h2>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Outstanding</th>
+                <th>Last Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let entry of khataLedger">
+                <td>{{ entry.customerName }}</td>
+                <td>{{ entry.phoneNumber || '—' }}</td>
+                <td>{{ entry.outstandingBalance | currency: 'INR' : 'symbol' : '1.2-2' }}</td>
+                <td>{{ entry.lastUpdated ? (entry.lastUpdated | date: 'dd MMM yyyy, HH:mm') : '—' }}</td>
+              </tr>
+              <tr *ngIf="khataLedger.length === 0">
+                <td colspan="4" class="empty-state">No khata records found yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="content-grid" *ngIf="activeTab === 'analysis' && canAccessAnalysis()">
+      <section class="panel combo-panel">
+        <div class="panel-head">
+          <h2>Combo Calculator</h2>
+        </div>
+
+        <div class="combo-form">
+          <label>
+            <span>Product</span>
+            <select [(ngModel)]="comboForm.selectedProductId" name="selectedProductId">
+              <option value="">Select product</option>
+              <option *ngFor="let item of products" [value]="item.id">{{ item.name }}</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Quantity</span>
+            <input type="number" [(ngModel)]="comboForm.quantity" name="quantity" min="1" step="1">
+          </label>
+
+          <label>
+            <span>Bundle Price</span>
+            <input type="number" [(ngModel)]="comboForm.bundlePrice" name="bundlePrice" min="0" step="0.01">
+          </label>
+
+          <div class="combo-actions">
+            <button type="button" class="primary-btn" (click)="calculateComboBundle()">Calculate</button>
+            <button type="button" class="ghost-btn" (click)="resetComboCalculator()">Reset</button>
+          </div>
+        </div>
+
+        <div class="combo-result" *ngIf="comboResult.totalCost || comboResult.profit || comboResult.marginPercent">
+          <div>
+            <span>Total Cost</span>
+            <strong>{{ comboResult.totalCost | currency: 'INR' : 'symbol' : '1.2-2' }}</strong>
+          </div>
+          <div>
+            <span>Profit</span>
+            <strong>{{ comboResult.profit | currency: 'INR' : 'symbol' : '1.2-2' }}</strong>
+          </div>
+          <div>
+            <span>Markup</span>
+            <strong>{{ comboResult.markupPercent | number: '1.0-1' }}%</strong>
+          </div>
+          <div>
+            <span>Margin</span>
+            <strong>{{ comboResult.marginPercent | number: '1.0-1' }}%</strong>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</ng-template>

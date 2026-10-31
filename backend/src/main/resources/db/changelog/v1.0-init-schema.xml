@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="1" author="copilot">
+        <createTable tableName="users">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="VARCHAR(50)"/>
+            <column name="phone_number" type="VARCHAR(15)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <sql>
+            ALTER TABLE users
+            ADD CONSTRAINT chk_users_role CHECK (role IN ('ROLE_ADMIN', 'ROLE_WORKER'));
+        </sql>
+
+        <addUniqueConstraint tableName="users" columnNames="user_id" constraintName="uk_users_user_id"/>
+
+        <createIndex tableName="users" indexName="idx_users_phone_number">
+            <column name="phone_number"/>
+        </createIndex>
+
+        <createTable tableName="products">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="brand" type="VARCHAR(100)"/>
+            <column name="category" type="VARCHAR(100)"/>
+            <column name="current_stock" type="INT" defaultValueNumeric="0"/>
+            <column name="min_stock_alert" type="INT" defaultValueNumeric="5"/>
+            <column name="purchase_price" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mrp" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="products" indexName="idx_products_name_category">
+            <column name="name"/>
+            <column name="category"/>
+        </createIndex>
+
+        <createTable tableName="khata_ledger">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone_number" type="VARCHAR(15)"/>
+            <column name="outstanding_balance" type="DECIMAL(10,2)" defaultValueNumeric="0.00"/>
+            <column name="last_updated" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <createTable tableName="festival_configs">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="festival_name" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="days_before_alert" type="INT" defaultValueNumeric="15"/>
+            <column name="recommended_categories" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <insert tableName="festival_configs">
+            <column name="festival_name" value="Diwali"/>
+            <column name="days_before_alert" valueNumeric="15"/>
+            <column name="recommended_categories" value="Ghee,Sweets,Dry Fruits,Diyas,Gifting Packs"/>
+        </insert>
+        <insert tableName="festival_configs">
+            <column name="festival_name" value="Holi"/>
+            <column name="days_before_alert" valueNumeric="15"/>
+            <column name="recommended_categories" value="Herbal Gulal,Thandai Syrup,Water Balloons,Namkeen"/>
+        </insert>
+        <insert tableName="festival_configs">
+            <column name="festival_name" value="Rakshabandhan"/>
+            <column name="days_before_alert" valueNumeric="15"/>
+            <column name="recommended_categories" value="Rakhis,Gifting Chocolates,Confectionery"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

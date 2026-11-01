@@ -4,10 +4,62 @@
       <p class="eyebrow">Inventory</p>
       <h2>Stock control</h2>
     </div>
-    <a routerLink="/inventory/new" class="action-button">+ Add item</a>
+    <button type="button" class="action-button" (click)="openCreateForm()">+ Add item</button>
   </header>
 
-  <div class="panel">
+  <form class="panel form-panel" *ngIf="showForm" (ngSubmit)="submitForm()" novalidate>
+    <div class="section">
+      <h3>{{ editingId != null ? 'Edit inventory item' : 'Add inventory item' }}</h3>
+
+      <div class="field-grid">
+        <label>
+          <span>Item name</span>
+          <input type="text" name="name" [(ngModel)]="form.name" placeholder="Rice bag" required>
+        </label>
+
+        <label>
+          <span>Brand</span>
+          <input type="text" name="brand" [(ngModel)]="form.brand" placeholder="Hulchul">
+        </label>
+
+        <label>
+          <span>Category</span>
+          <input type="text" name="category" [(ngModel)]="form.category" placeholder="Groceries">
+        </label>
+
+        <label>
+          <span>Current stock</span>
+          <input type="number" name="currentStock" [(ngModel)]="form.currentStock" min="0" step="1">
+        </label>
+
+        <label>
+          <span>Min stock</span>
+          <input type="number" name="minStockAlert" [(ngModel)]="form.minStockAlert" min="0" step="1">
+        </label>
+
+        <label>
+          <span>Purchase price</span>
+          <input type="number" name="purchasePrice" [(ngModel)]="form.purchasePrice" min="0" step="0.01">
+        </label>
+
+        <label>
+          <span>MRP</span>
+          <input type="number" name="mrp" [(ngModel)]="form.mrp" min="0" step="0.01">
+        </label>
+      </div>
+
+      <p class="form-error" role="alert" *ngIf="formError">{{ formError }}</p>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="secondary-button" (click)="closeForm()" [disabled]="saving">Cancel</button>
+      <button type="submit" class="primary-button" [disabled]="saving">
+        {{ saving ? 'Saving…' : (editingId != null ? 'Update item' : 'Save item') }}
+      </button>
+    </div>
+  </form>
+
+  <div class="panel" *ngIf="!showForm">
     <div class="table-wrap">
       <table>
         <thead>
@@ -18,12 +70,13 @@
             <th>Min</th>
             <th>Purchase</th>
             <th>MRP</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let item of inventory">
             <td>{{ item.name }}</td>
-            <td>{{ item.brand }}</td>
+            <td>{{ item.brand || '-' }}</td>
             <td>
               <span class="stock-pill" [class.low]="item.stock <= item.min">
                 {{ item.stock }}
@@ -32,6 +85,12 @@
             <td>{{ item.min }}</td>
             <td>₹{{ item.purchase }}</td>
             <td>₹{{ item.mrp }}</td>
+            <td>
+              <div class="table-actions">
+                <button type="button" class="secondary-button small" (click)="editItem(item)">Edit</button>
+                <button type="button" class="danger-button small" (click)="deleteItem(item)">Delete</button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>

@@ -24,7 +24,7 @@
 
   <form class="panel form-panel" *ngIf="showForm" (ngSubmit)="save()" novalidate>
     <div class="section">
-      <h3>New khata entry</h3>
+      <h3>{{ editingId != null ? 'Edit khata entry' : 'New khata entry' }}</h3>
 
       <div class="field-grid">
         <label>
@@ -52,7 +52,7 @@
     <div class="form-actions">
       <button type="button" class="secondary-button" (click)="closeForm()" [disabled]="saving">Cancel</button>
       <button type="submit" class="primary-button" [disabled]="saving">
-        {{ saving ? 'Saving…' : 'Save entry' }}
+        {{ saving ? 'Saving…' : (editingId != null ? 'Update entry' : 'Save entry') }}
       </button>
     </div>
   </form>
@@ -88,6 +88,10 @@
           <span class="badge" [class.badge-due]="entry.status === 'Due'" [class.badge-paid]="entry.status === 'Paid'">
             {{ entry.status }}
           </span>
+          <div class="table-actions">
+            <button type="button" class="secondary-button small" (click)="editEntry(entry)">Edit</button>
+            <button type="button" class="danger-button small" (click)="deleteEntry(entry)">Delete</button>
+          </div>
         </div>
       </article>
     </div>

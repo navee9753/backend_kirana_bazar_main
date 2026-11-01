@@ -4,7 +4,9 @@ import com.kirana.inventory.dto.DashboardSummary;
 import com.kirana.inventory.model.Product;
 import com.kirana.inventory.repository.KhataRepository;
 import com.kirana.inventory.repository.ProductRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -59,5 +61,29 @@ public class ProductService {
 
         product.setName(product.getName().trim());
         return productRepository.save(product);
+    }
+
+    public Product updateProduct(Long id, Product product) {
+        Product existing = productRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+
+        if (product == null || product.getName() == null || product.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Product name is required");
+        }
+
+        existing.setName(product.getName().trim());
+        existing.setBrand(product.getBrand());
+        existing.setCategory(product.getCategory());
+        existing.setCurrentStock(product.getCurrentStock());
+        existing.setMinStockAlert(product.getMinStockAlert());
+        existing.setPurchasePrice(product.getPurchasePrice());
+        existing.setMrp(product.getMrp());
+        return productRepository.save(existing);
+    }
+
+    public void deleteProduct(Long id) {
+        Product existing = productRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+        productRepository.delete(existing);
     }
 }

@@ -29,4 +29,16 @@ public class KhataController {
         Khata savedKhata = khataService.createKhataEntry(khata);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedKhata);
     }
+
+    @PutMapping("/khata/{id}")
+    public ResponseEntity<Khata> updateKhataEntry(@PathVariable Long id, @Valid @RequestBody Khata khata) {
+        Khata updatedKhata = khataService.updateKhataEntry(id, khata);
+        return ResponseEntity.ok(updatedKhata);
+    }
+
+    @DeleteMapping("/khata/{id}")
+    public ResponseEntity<Void> deleteKhataEntry(@PathVariable Long id) {
+        khataService.deleteKhataEntry(id);
+        return ResponseEntity.noContent().build();
+    }
 }

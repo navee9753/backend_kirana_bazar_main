@@ -11,12 +11,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -104,6 +107,62 @@ class ProductControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(product)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldUpdateProductWhenIdExists() throws Exception {
+        Product product = Product.builder()
+                .name("Rice Update")
+                .brand("Tata")
+                .category("Groceries")
+                .currentStock(30)
+                .minStockAlert(10)
+                .purchasePrice(new BigDecimal("40.00"))
+                .mrp(new BigDecimal("55.00"))
+                .build();
+
+        MockHttpServletResponse createResponse = mockMvc.perform(post("/api/products")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(product)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse();
+
+        Product created = objectMapper.readValue(createResponse.getContentAsString(), Product.class);
+
+        mockMvc.perform(put("/api/products/{id}", created.getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(product)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldDeleteProductWhenIdExists() throws Exception {
+        Product product = Product.builder()
+                .name("Rice Delete")
+                .brand("Aashirvaad")
+                .category("Groceries")
+                .currentStock(25)
+                .minStockAlert(8)
+                .purchasePrice(new BigDecimal("36.00"))
+                .mrp(new BigDecimal("45.00"))
+                .build();
+
+        MockHttpServletResponse createResponse = mockMvc.perform(post("/api/products")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(product)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse();
+
+        Product created = objectMapper.readValue(createResponse.getContentAsString(), Product.class);
+
+        mockMvc.perform(delete("/api/products/{id}", created.getId())
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken()))
+                .andExpect(status().isNoContent());
     }
 
     @Test

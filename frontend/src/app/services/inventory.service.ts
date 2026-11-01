@@ -235,6 +235,31 @@ export class InventoryService {
     );
   }
 
+  updateProduct(id: number, product: Product): Observable<Product> {
+    const currentProducts = this.readLocalProducts();
+    const index = currentProducts.findIndex((item) => item.id === id);
+
+    if (index !== -1) {
+      const updated = { ...currentProducts[index], ...product, id };
+      currentProducts[index] = updated;
+      this.persistLocalProducts(currentProducts);
+    }
+
+    return this.http.put<Product>(`${this.productUrl}/${id}`, product, { headers: this.authHeaders() }).pipe(
+      catchError(() => of({ ...product, id }))
+    );
+  }
+
+  deleteProduct(id: number): Observable<void> {
+    const currentProducts = this.readLocalProducts();
+    const filtered = currentProducts.filter((item) => item.id !== id);
+    this.persistLocalProducts(filtered);
+
+    return this.http.delete<void>(`${this.productUrl}/${id}`, { headers: this.authHeaders() }).pipe(
+      catchError(() => of())
+    );
+  }
+
   getKhata(): Observable<Khata[]> {
     return this.http.get<Khata[]>(this.khataUrl, { headers: this.authHeaders() });
   }
@@ -265,6 +290,14 @@ export class InventoryService {
 
   addKhata(entry: Khata): Observable<Khata> {
     return this.http.post<Khata>(this.khataUrl, entry, { headers: this.authHeaders() });
+  }
+
+  updateKhata(id: number, entry: Khata): Observable<Khata> {
+    return this.http.put<Khata>(`${this.khataUrl}/${id}`, entry, { headers: this.authHeaders() });
+  }
+
+  deleteKhata(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.khataUrl}/${id}`, { headers: this.authHeaders() });
   }
 
   getFestivalConfigs(): Observable<FestivalConfig[]> {

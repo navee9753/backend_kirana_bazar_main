@@ -28,6 +28,7 @@ export class KhataPageComponent implements OnInit {
   loadError = '';
   formError = '';
   showForm = false;
+  editingId: number | null = null;
 
   form = {
     customerName: '',
@@ -81,14 +82,27 @@ export class KhataPageComponent implements OnInit {
   }
 
   openForm(): void {
+    this.editingId = null;
     this.formError = '';
     this.form = { customerName: '', phoneNumber: '', outstandingBalance: null };
+    this.showForm = true;
+  }
+
+  editEntry(row: KhataRow): void {
+    this.editingId = row.id ?? null;
+    this.formError = '';
+    this.form = {
+      customerName: row.customer,
+      phoneNumber: row.phone,
+      outstandingBalance: row.amount
+    };
     this.showForm = true;
   }
 
   closeForm(): void {
     this.showForm = false;
     this.formError = '';
+    this.editingId = null;
   }
 
   save(): void {
@@ -112,19 +126,32 @@ export class KhataPageComponent implements OnInit {
     this.saving = true;
     this.formError = '';
 
-    this.inventoryService
-      .addKhata({ customerName: name, phoneNumber: phone, outstandingBalance: amount })
-      .subscribe({
-        next: () => {
-          this.saving = false;
-          this.closeForm();
-          this.load();
-        },
-        error: (err: HttpErrorResponse) => {
-          this.saving = false;
-          this.formError = this.messageFor(err);
-        }
-      });
+    const request$ = this.editingId != null
+      ? this.inventoryService.updateKhata(this.editingId, { customerName: name, phoneNumber: phone, outstandingBalance: amount })
+      : this.inventoryService.addKhata({ customerName: name, phoneNumber: phone, outstandingBalance: amount });
+
+    request$.subscribe({
+      next: () => {
+        this.saving = false;
+        this.closeForm();
+        this.load();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.saving = false;
+        this.formError = this.messageFor(err);
+      }
+    });
+  }
+
+  deleteEntry(row: KhataRow): void {
+    if (!row.id || !confirm(`Delete ${row.customer}?`)) {
+      return;
+    }
+
+    this.inventoryService.deleteKhata(row.id).subscribe({
+      next: () => this.load(),
+      error: () => alert('Unable to delete the ledger entry right now.')
+    });
   }
 
   initials(name: string): string {

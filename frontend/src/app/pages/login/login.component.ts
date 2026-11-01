@@ -35,6 +35,14 @@ export class LoginPageComponent {
 
     this.inventoryService.loginUser({ phoneNumber, password }).subscribe({
       next: (response) => {
+        const token = response?.token?.trim();
+
+        if (!token) {
+          localStorage.removeItem('kirana-auth-token');
+          alert('Login failed. No valid JWT token was returned by the server.');
+          return;
+        }
+
         const normalizedRole = (response.role || this.model.role)
           .toString()
           .toUpperCase()
@@ -42,15 +50,13 @@ export class LoginPageComponent {
 
         localStorage.setItem('kirana-user-role', normalizedRole);
         localStorage.setItem('kirana-user-phone', response.phoneNumber || phoneNumber);
-        localStorage.setItem('kirana-auth-token', response.token || 'demo-token');
+        localStorage.setItem('kirana-auth-token', token);
 
         this.router.navigateByUrl('/dashboard');
       },
       error: () => {
-        localStorage.setItem('kirana-user-role', this.model.role);
-        localStorage.setItem('kirana-user-phone', phoneNumber);
-        localStorage.setItem('kirana-auth-token', 'demo-token');
-        this.router.navigateByUrl('/dashboard');
+        localStorage.removeItem('kirana-auth-token');
+        alert('Login failed. Please check your credentials and try again.');
       }
     });
   }

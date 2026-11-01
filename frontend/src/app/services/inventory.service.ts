@@ -68,7 +68,8 @@ export class InventoryService {
 
   private authHeaders(): HttpHeaders {
     const token = localStorage.getItem('kirana-auth-token');
-    if (!token) {
+    if (!token || token === 'demo-token' || token.trim().length === 0) {
+      localStorage.removeItem('kirana-auth-token');
       return new HttpHeaders();
     }
 

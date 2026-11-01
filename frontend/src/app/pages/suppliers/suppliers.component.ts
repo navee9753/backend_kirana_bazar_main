@@ -2,15 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-export interface Supplier {
-  id: number;
-  supplierName: string;
-  firmName: string;
-  phoneNumber: string;
-  email: string;
-  details: string;
-  address: string;
-}
+import { InventoryService, Supplier } from '../../services/inventory.service';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -31,25 +23,21 @@ export class SuppliersPageComponent implements OnInit {
     address: ''
   };
 
-  readonly storageKey = 'kirana-suppliers';
+  constructor(private readonly inventoryService: InventoryService) {}
 
   ngOnInit(): void {
     this.loadSuppliers();
   }
 
   loadSuppliers(): void {
-    const saved = localStorage.getItem(this.storageKey);
-    this.suppliers = saved ? JSON.parse(saved) as Supplier[] : [
-      {
-        id: 1,
-        supplierName: 'Rajesh Kumar',
-        firmName: 'Kamal Traders',
-        phoneNumber: '9876543210',
-        email: 'kamaltraders@gmail.com',
-        details: 'Wholesale rice and pulses supplier',
-        address: 'Market Road, Jaipur'
+    this.inventoryService.getSuppliers().subscribe({
+      next: (suppliers) => {
+        this.suppliers = suppliers ?? [];
+      },
+      error: () => {
+        this.suppliers = [];
       }
-    ];
+    });
   }
 
   saveSupplier(): void {
@@ -62,7 +50,6 @@ export class SuppliersPageComponent implements OnInit {
     }
 
     const supplier: Supplier = {
-      id: Date.now(),
       supplierName,
       firmName,
       phoneNumber: (this.form.phoneNumber ?? '').trim(),
@@ -71,11 +58,16 @@ export class SuppliersPageComponent implements OnInit {
       address
     };
 
-    const existing = this.suppliers ?? [];
-    const updated = [supplier, ...existing];
-    this.suppliers = updated;
-    localStorage.setItem(this.storageKey, JSON.stringify(updated));
-    this.resetForm();
+    this.inventoryService.addSupplier(supplier).subscribe({
+      next: (saved) => {
+        this.suppliers = [saved, ...this.suppliers.filter(item => item.id !== saved.id)];
+        this.resetForm();
+      },
+      error: () => {
+        this.suppliers = [supplier, ...this.suppliers];
+        this.resetForm();
+      }
+    });
   }
 
   resetForm(): void {

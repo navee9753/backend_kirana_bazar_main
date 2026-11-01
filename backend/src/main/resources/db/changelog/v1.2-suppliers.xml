@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.2-create-suppliers" author="copilot">
+        <createTable tableName="suppliers">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="supplier_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="firm_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone_number" type="VARCHAR(25)"/>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="details" type="TEXT"/>
+            <column name="address" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="suppliers" indexName="idx_suppliers_firm_name">
+            <column name="firm_name"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -54,6 +54,16 @@ export interface FestivalConfig {
   recommendedCategories: string;
 }
 
+export interface Supplier {
+  id?: number;
+  supplierName: string;
+  firmName: string;
+  phoneNumber?: string;
+  email?: string;
+  details?: string;
+  address: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -63,6 +73,7 @@ export class InventoryService {
   private readonly khataUrl = `${this.apiBaseUrl}/api/khata`;
   private readonly userUrl = `${this.apiBaseUrl}/api/users`;
   private readonly localStorageKey = 'kirana-inventory-products';
+  private readonly supplierStorageKey = 'kirana-suppliers';
 
   constructor(private http: HttpClient) {}
 
@@ -94,6 +105,54 @@ export class InventoryService {
 
   private persistLocalProducts(products: Product[]): void {
     localStorage.setItem(this.localStorageKey, JSON.stringify(products));
+  }
+
+  private readLocalSuppliers(): Supplier[] {
+    const raw = localStorage.getItem(this.supplierStorageKey);
+    if (!raw) {
+      return [
+        {
+          id: 1,
+          supplierName: 'Rajesh Kumar',
+          firmName: 'Kamal Traders',
+          phoneNumber: '9876543210',
+          email: 'kamaltraders@gmail.com',
+          details: 'Wholesale rice and pulses supplier',
+          address: 'Market Road, Jaipur'
+        }
+      ];
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as Supplier[];
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : [
+        {
+          id: 1,
+          supplierName: 'Rajesh Kumar',
+          firmName: 'Kamal Traders',
+          phoneNumber: '9876543210',
+          email: 'kamaltraders@gmail.com',
+          details: 'Wholesale rice and pulses supplier',
+          address: 'Market Road, Jaipur'
+        }
+      ];
+    } catch {
+      return [
+        {
+          id: 1,
+          supplierName: 'Rajesh Kumar',
+          firmName: 'Kamal Traders',
+          phoneNumber: '9876543210',
+          email: 'kamaltraders@gmail.com',
+          details: 'Wholesale rice and pulses supplier',
+          address: 'Market Road, Jaipur'
+        }
+      ];
+    }
+  }
+
+  private persistLocalSuppliers(suppliers: Supplier[]): void {
+    localStorage.setItem(this.supplierStorageKey, JSON.stringify(suppliers));
   }
 
   private defaultProducts(): Product[] {
@@ -178,6 +237,30 @@ export class InventoryService {
 
   getKhata(): Observable<Khata[]> {
     return this.http.get<Khata[]>(this.khataUrl, { headers: this.authHeaders() });
+  }
+
+  getSuppliers(): Observable<Supplier[]> {
+    return this.http.get<Supplier[]>(`${this.apiBaseUrl}/api/suppliers`, { headers: this.authHeaders() }).pipe(
+      catchError(() => of(this.readLocalSuppliers()))
+    );
+  }
+
+  addSupplier(supplier: Supplier): Observable<Supplier> {
+    const currentSuppliers = this.readLocalSuppliers();
+    const newSupplier: Supplier = {
+      ...supplier,
+      id: Date.now(),
+      supplierName: supplier.supplierName.trim(),
+      firmName: supplier.firmName.trim(),
+      address: supplier.address.trim()
+    };
+
+    const updatedSuppliers = [newSupplier, ...currentSuppliers];
+    this.persistLocalSuppliers(updatedSuppliers);
+
+    return this.http.post<Supplier>(`${this.apiBaseUrl}/api/suppliers`, supplier, { headers: this.authHeaders() }).pipe(
+      catchError(() => of(newSupplier))
+    );
   }
 
   addKhata(entry: Khata): Observable<Khata> {

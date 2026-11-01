@@ -28,20 +28,23 @@
   padding: var(--space-3) 0;
 }
 
-.brand-mark {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
+.brand-logo {
+  width: 46px;
+  height: 46px;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--brand-600), var(--brand-500));
-  color: white;
-  font-weight: 700;
+  object-fit: cover;
+  box-shadow: 0 10px 20px rgba(201, 104, 26, 0.18);
+}
+
+.brand-copy {
+  min-width: 0;
 }
 
 .brand-block h1 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
 }
 
 .eyebrow {

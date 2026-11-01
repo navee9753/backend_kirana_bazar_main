@@ -7,6 +7,7 @@ import { ProductFormPageComponent } from './pages/inventory/product-form.compone
 import { KhataPageComponent } from './pages/khata/khata.component';
 import { BillingPageComponent } from './pages/billing/billing.component';
 import { SettingsPageComponent } from './pages/settings/settings.component';
+import { SuppliersPageComponent } from './pages/suppliers/suppliers.component';
 import { ShellComponent } from './shell/shell.component';
 
 export const routes: Routes = [
@@ -22,6 +23,7 @@ export const routes: Routes = [
       { path: 'inventory/new', component: ProductFormPageComponent },
       { path: 'khata', component: KhataPageComponent },
       { path: 'billing', component: BillingPageComponent },
+      { path: 'suppliers', component: SuppliersPageComponent },
       { path: 'settings', component: SettingsPageComponent }
     ]
   },

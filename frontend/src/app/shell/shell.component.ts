@@ -15,6 +15,7 @@ export class ShellComponent {
     { label: 'Inventory', path: '/inventory', icon: '▤' },
     { label: 'Khata', path: '/khata', icon: '◫' },
     { label: 'Billing', path: '/billing', icon: '◌' },
+    { label: 'Suppliers', path: '/suppliers', icon: '◍' },
     { label: 'Settings', path: '/settings', icon: '⚙' }
   ];
 

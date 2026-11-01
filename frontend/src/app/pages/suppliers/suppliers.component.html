@@ -1,0 +1,94 @@
+<section class="page-shell">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Suppliers</p>
+      <h2>Supplier directory</h2>
+    </div>
+  </header>
+
+  <div class="content-grid">
+    <section class="panel form-panel">
+      <div class="panel-head">
+        <h3>Add Supplier</h3>
+      </div>
+
+      <form class="supplier-form" (ngSubmit)="saveSupplier()">
+        <div class="field-grid two-col">
+          <label>
+            <span>Supplier Name</span>
+            <input [(ngModel)]="form.supplierName" name="supplierName" placeholder="Rajesh Kumar" />
+          </label>
+
+          <label>
+            <span>Firm Name</span>
+            <input [(ngModel)]="form.firmName" name="firmName" placeholder="Kamal Traders" />
+          </label>
+        </div>
+
+        <div class="field-grid two-col">
+          <label>
+            <span>Phone Number</span>
+            <input [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="9876543210" />
+          </label>
+
+          <label>
+            <span>Email</span>
+            <input [(ngModel)]="form.email" name="email" type="email" placeholder="supplier@example.com" />
+          </label>
+        </div>
+
+        <label>
+          <span>Details</span>
+          <textarea [(ngModel)]="form.details" name="details" rows="3" placeholder="Supplier details, products, terms, etc."></textarea>
+        </label>
+
+        <label>
+          <span>Address</span>
+          <textarea [(ngModel)]="form.address" name="address" rows="3" placeholder="Market Road, Jaipur"></textarea>
+        </label>
+
+        <div class="form-actions">
+          <button type="button" class="secondary-button" (click)="resetForm()">Clear</button>
+          <button type="submit" class="action-button">Save Supplier</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel list-panel">
+      <div class="panel-head">
+        <h3>Saved Suppliers</h3>
+      </div>
+
+      <div *ngIf="suppliers.length === 0" class="empty-state">No suppliers added yet.</div>
+
+      <div *ngFor="let supplier of suppliers" class="supplier-card">
+        <div class="supplier-header">
+          <div class="supplier-badge">{{ supplier.supplierName.charAt(0) }}</div>
+          <div>
+            <h4>{{ supplier.supplierName }}</h4>
+            <small>{{ supplier.firmName }}</small>
+          </div>
+        </div>
+
+        <dl>
+          <div>
+            <dt>Phone</dt>
+            <dd>{{ supplier.phoneNumber || 'N/A' }}</dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd>{{ supplier.email || 'N/A' }}</dd>
+          </div>
+          <div>
+            <dt>Details</dt>
+            <dd>{{ supplier.details || 'No details provided' }}</dd>
+          </div>
+          <div>
+            <dt>Address</dt>
+            <dd>{{ supplier.address }}</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+  </div>
+</section>

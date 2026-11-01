@@ -21,3 +21,6 @@ application-local-secrets*
 .vscode/
 .idea/
 *.iml
+.neon
+node_modules/
+.env.local

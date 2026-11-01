@@ -54,9 +54,12 @@ export class LoginPageComponent {
 
         this.router.navigateByUrl('/dashboard');
       },
-      error: () => {
+      error: (error) => {
         localStorage.removeItem('kirana-auth-token');
-        alert('Login failed. Please check your credentials and try again.');
+
+        const backendMessage = error?.error?.message || error?.error?.error || 'Invalid phone number or password.';
+        alert(backendMessage);
+        this.router.navigateByUrl('/login');
       }
     });
   }

@@ -23,13 +23,29 @@
   color: var(--slate-500);
 }
 
-.action-button {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-button,
+.logout-button {
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
-  color: white;
   padding: 10px 14px;
   font-weight: 700;
+  cursor: pointer;
+}
+
+.action-button {
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+  color: white;
+}
+
+.logout-button {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .settings-grid {

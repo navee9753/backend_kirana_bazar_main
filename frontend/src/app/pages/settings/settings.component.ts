@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-settings-page',
@@ -15,4 +16,13 @@ export class SettingsPageComponent {
     { label: 'Low stock alert', value: '10 items' },
     { label: 'GST settings', value: 'Enabled' }
   ];
+
+  constructor(private router: Router) {}
+
+  logout(): void {
+    localStorage.removeItem('kirana-auth-token');
+    localStorage.removeItem('kirana-user-role');
+    localStorage.removeItem('kirana-user-phone');
+    this.router.navigateByUrl('/login');
+  }
 }

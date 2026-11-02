@@ -1,47 +1,148 @@
 <section class="page-shell">
   <header class="page-head">
     <div>
-      <p class="eyebrow">Overview</p>
+      <p class="eyebrow">Daily overview</p>
       <h2>NAVEEN KIRANA BAZAR</h2>
     </div>
-    <button type="button" class="action-button">+ Add sale</button>
+    <a class="action-button" routerLink="/billing">+ Add sale</a>
   </header>
 
-  <div class="stats-grid">
+  <div *ngIf="loadErrors.length" class="load-errors" role="status">
+    <p *ngFor="let error of loadErrors">{{ error }}</p>
+  </div>
+
+  <section class="dashboard-row metric-row" aria-label="Business metrics">
     <article class="stat-card" *ngFor="let stat of stats" [ngClass]="stat.tone">
       <span>{{ stat.label }}</span>
       <strong>{{ stat.value }}</strong>
+      <small *ngIf="stat.label === 'Mandi Alerts'">No mandi alert source configured</small>
     </article>
-  </div>
+  </section>
 
-  <div class="content-grid">
-    <section class="panel">
+  <section class="dashboard-row festival-card" [ngClass]="festivalAlert.state" aria-labelledby="festival-title">
+    <div class="festival-copy">
+      <p class="eyebrow">Seasonal buying guide</p>
+      <h3 id="festival-title">Cultural Festival Procurement Alert</h3>
+      <p class="festival-name">
+        {{ festivalAlert.name }}
+        <span *ngIf="festivalAlert.approximate" class="approximate-tag">Approximate date</span>
+      </p>
+      <p class="festival-categories">{{ festivalAlert.categories }}</p>
+      <small>Indicative recurring calendar; confirm local festival dates before purchasing.</small>
+    </div>
+    <div class="festival-countdown" aria-live="polite">
+      <strong>{{ festivalAlert.daysAway === 0 ? 'Today' : festivalAlert.daysAway }}</strong>
+      <span>{{ festivalAlert.daysAway === 0 ? '' : 'days away' }}</span>
+    </div>
+  </section>
+
+  <section class="dashboard-row alerts-grid" aria-label="Inventory and khata alerts">
+    <section class="panel stock-panel" aria-labelledby="stock-heading">
       <div class="panel-head">
-        <h3>Today’s focus</h3>
+        <div>
+          <p class="eyebrow">Restock soon</p>
+          <h3 id="stock-heading">Low Stock Alert Grid</h3>
+        </div>
+        <a routerLink="/inventory" class="subtle-link">View inventory</a>
       </div>
-      <ul class="task-list">
-        <li *ngFor="let task of tasks">{{ task }}</li>
-      </ul>
+      <div *ngIf="lowStockProducts.length; else noLowStock" class="stock-grid">
+        <article class="stock-item" *ngFor="let product of lowStockProducts">
+          <div class="stock-item-heading">
+            <strong>{{ product.name }}</strong>
+            <span class="stock-badge">{{ product.currentStock }} {{ product.unit || 'units' }}</span>
+          </div>
+          <p>{{ product.brand || product.category }}</p>
+          <div class="stock-meter" aria-hidden="true">
+            <span [style.width.%]="product.minStockAlert > 0 ? (product.currentStock / product.minStockAlert) * 100 : 0"></span>
+          </div>
+          <small>Restock threshold: {{ product.minStockAlert }} {{ product.unit || 'units' }}</small>
+        </article>
+      </div>
+      <ng-template #noLowStock>
+        <p class="empty-state">No low-stock products to show.</p>
+      </ng-template>
     </section>
 
-    <section class="panel">
+    <section class="panel khata-panel" aria-labelledby="khata-heading">
       <div class="panel-head">
-        <h3>Fast movers</h3>
+        <div>
+          <p class="eyebrow">Customer follow-up</p>
+          <h3 id="khata-heading">Active Udhar Khata</h3>
+        </div>
+        <a routerLink="/khata" class="subtle-link">View khata</a>
       </div>
-      <div class="list-stack">
-        <div class="line-item">
-          <span>Rice bags</span>
-          <strong>34</strong>
+      <div *ngIf="activeKhataEntries.length; else noKhata" class="khata-list">
+        <article class="khata-item" *ngFor="let entry of activeKhataEntries">
+          <div class="khata-person">
+            <strong>{{ entry.customerName }}</strong>
+            <span>{{ entry.phoneNumber || 'No phone number' }}</span>
+          </div>
+          <strong class="khata-balance">{{ entry.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+          <a
+            *ngIf="whatsappLink(entry) as messageLink"
+            class="whatsapp-link"
+            [href]="messageLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            [attr.aria-label]="'Send khata reminder to ' + entry.customerName + ' on WhatsApp'"
+          >
+            WhatsApp
+          </a>
+        </article>
+      </div>
+      <ng-template #noKhata>
+        <p class="empty-state">No outstanding khata reminders.</p>
+      </ng-template>
+    </section>
+  </section>
+
+  <section class="dashboard-row utility-toolbar" aria-label="System utilities">
+    <section class="utility-panel" aria-labelledby="bulk-loader-heading">
+      <div class="utility-heading">
+        <div>
+          <p class="eyebrow">Spreadsheet utility</p>
+          <h3 id="bulk-loader-heading">Bulk Loader Preview</h3>
         </div>
-        <div class="line-item">
-          <span>Tea leaves</span>
-          <strong>18</strong>
-        </div>
-        <div class="line-item">
-          <span>Cooking oil</span>
-          <strong>11</strong>
-        </div>
+        <label class="file-picker">
+          Choose CSV
+          <input type="file" accept=".csv,text/csv" (change)="onCsvSelected($event)" aria-label="Choose a CSV file to preview" />
+        </label>
+      </div>
+      <p class="utility-note">Preview only. This does not import or change inventory.</p>
+      <p *ngIf="csvMessage" class="csv-message" role="status">{{ csvMessage }}</p>
+      <div *ngIf="csvHeaders.length" class="csv-preview">
+        <table>
+          <thead>
+            <tr><th *ngFor="let header of csvHeaders">{{ header || 'Column' }}</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of csvPreview">
+              <td *ngFor="let header of csvHeaders; let column = index">{{ row[column] || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
-  </div>
+
+    <section class="utility-panel timer-panel" aria-labelledby="timer-heading">
+      <div class="utility-heading">
+        <div>
+          <p class="eyebrow">Session security</p>
+          <h3 id="timer-heading">Inactivity logout</h3>
+        </div>
+        <strong class="timer-value" aria-live="polite">{{ timerLabel }}</strong>
+      </div>
+      <p class="utility-note">You will be logged out after 10 minutes without activity.</p>
+      <div
+        class="timer-track"
+        role="progressbar"
+        aria-label="Time remaining before inactivity logout"
+        aria-valuemin="0"
+        aria-valuemax="600"
+        [attr.aria-valuenow]="remainingSeconds"
+      >
+        <span [style.width.%]="timerProgress"></span>
+      </div>
+    </section>
+  </section>
 </section>

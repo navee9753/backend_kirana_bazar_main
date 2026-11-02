@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.3-align-supplier-fields" author="copilot">
+        <preConditions onFail="HALT" onError="HALT">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM suppliers
+                WHERE phone_number IS NULL
+                   OR BTRIM(phone_number) = ''
+                   OR CHAR_LENGTH(phone_number) &gt; 15
+                   OR CHAR_LENGTH(supplier_name) &gt; 150
+            </sqlCheck>
+        </preConditions>
+
+        <renameColumn tableName="suppliers" oldColumnName="firm_name" newColumnName="name" columnDataType="VARCHAR(255)"/>
+        <renameColumn tableName="suppliers" oldColumnName="supplier_name" newColumnName="contact_person" columnDataType="VARCHAR(255)"/>
+        <modifyDataType tableName="suppliers" columnName="contact_person" newDataType="VARCHAR(150)"/>
+        <dropNotNullConstraint tableName="suppliers" columnName="contact_person" columnDataType="VARCHAR(150)"/>
+        <modifyDataType tableName="suppliers" columnName="phone_number" newDataType="VARCHAR(15)"/>
+        <addNotNullConstraint tableName="suppliers" columnName="phone_number" columnDataType="VARCHAR(15)"/>
+
+        <addColumn tableName="suppliers">
+            <column name="company_brand" type="VARCHAR(150)"/>
+            <column name="pending_payable" type="NUMERIC(14,2)" defaultValueNumeric="0.00"/>
+            <column name="last_delivery_date" type="TIMESTAMP"/>
+        </addColumn>
+
+        <dropIndex tableName="suppliers" indexName="idx_suppliers_firm_name"/>
+        <createIndex tableName="suppliers" indexName="idx_suppliers_name">
+            <column name="name"/>
+        </createIndex>
+
+        <comment>
+            Legacy details and address columns are retained to preserve existing supplier data.
+        </comment>
+    </changeSet>
+
+</databaseChangeLog>

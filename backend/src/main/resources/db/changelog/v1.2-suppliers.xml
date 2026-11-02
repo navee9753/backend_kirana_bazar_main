@@ -10,21 +10,22 @@
             <column name="id" type="SERIAL" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="name" type="VARCHAR(255)">
+            <column name="supplier_name" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="contact_person" type="VARCHAR(150)"/>
-            <column name="phone_number" type="VARCHAR(15)">
+            <column name="firm_name" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="phone_number" type="VARCHAR(25)"/>
             <column name="email" type="VARCHAR(255)"/>
-            <column name="company_brand" type="VARCHAR(150)"/>
-            <column name="pending_payable" type="NUMERIC(14,2)" defaultValueNumeric="0.00"/>
-            <column name="last_delivery_date" type="TIMESTAMP"/>
+            <column name="details" type="TEXT"/>
+            <column name="address" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
-        <createIndex tableName="suppliers" indexName="idx_suppliers_name">
-            <column name="name"/>
+        <createIndex tableName="suppliers" indexName="idx_suppliers_firm_name">
+            <column name="firm_name"/>
         </createIndex>
     </changeSet>
 

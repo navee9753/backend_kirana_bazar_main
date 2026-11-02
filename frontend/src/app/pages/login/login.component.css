@@ -75,6 +75,11 @@
   color: white;
 }
 
+.role-switch button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .login-form label {
   display: grid;
   gap: 8px;
@@ -91,6 +96,11 @@
 }
 
 .primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
   border: 0;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
@@ -98,4 +108,47 @@
   font-weight: 700;
   padding: 14px 16px;
   box-shadow: 0 12px 25px rgba(15, 118, 110, 0.2);
+}
+
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.8;
+}
+
+.login-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: login-spin 700ms linear infinite;
+}
+
+.login-error {
+  margin: 0;
+  border: 1px solid var(--danger-500);
+  border-radius: 10px;
+  background: var(--danger-100);
+  padding: 10px 12px;
+  color: var(--danger-500);
+  font-size: 0.88rem;
+}
+
+.login-status {
+  margin: -10px 0 0;
+  color: var(--slate-500);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-spinner {
+    animation-duration: 1.5s;
+  }
 }

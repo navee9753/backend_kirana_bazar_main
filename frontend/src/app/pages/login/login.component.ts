@@ -13,6 +13,9 @@ import { InventoryService } from '../../services/inventory.service';
   styleUrls: ['./login.component.css']
 })
 export class LoginPageComponent {
+  isLoggingIn = false;
+  loginError = '';
+
   model = {
     phoneNumber: '',
     password: '',
@@ -25,21 +28,28 @@ export class LoginPageComponent {
   ) {}
 
   onSubmit(): void {
+    if (this.isLoggingIn) {
+      return;
+    }
+
     const phoneNumber = this.model.phoneNumber.trim();
     const password = this.model.password.trim();
 
     if (!phoneNumber || !password) {
-      alert('Phone number and password are required.');
+      this.loginError = 'Phone number and password are required.';
       return;
     }
 
+    this.isLoggingIn = true;
+    this.loginError = '';
     this.inventoryService.loginUser({ phoneNumber, password }).subscribe({
       next: (response) => {
         const token = response?.token?.trim();
 
         if (!token) {
           localStorage.removeItem('kirana-auth-token');
-          alert('Login failed. No valid JWT token was returned by the server.');
+          this.loginError = 'Login failed. No valid JWT token was returned by the server.';
+          this.isLoggingIn = false;
           return;
         }
 
@@ -58,8 +68,8 @@ export class LoginPageComponent {
         localStorage.removeItem('kirana-auth-token');
 
         const backendMessage = error?.error?.message || error?.error?.error || 'Invalid phone number or password.';
-        alert(backendMessage);
-        this.router.navigateByUrl('/login');
+        this.loginError = backendMessage;
+        this.isLoggingIn = false;
       }
     });
   }

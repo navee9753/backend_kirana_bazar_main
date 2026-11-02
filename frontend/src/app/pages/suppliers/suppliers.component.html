@@ -15,36 +15,42 @@
       <form class="supplier-form" (ngSubmit)="saveSupplier()">
         <div class="field-grid two-col">
           <label>
-            <span>Supplier Name</span>
-            <input [(ngModel)]="form.supplierName" name="supplierName" placeholder="Rajesh Kumar" />
+            <span>Distributor Name</span>
+            <input [(ngModel)]="form.name" name="name" placeholder="Balaji HUL Distributor" required maxlength="255" />
           </label>
 
           <label>
-            <span>Firm Name</span>
-            <input [(ngModel)]="form.firmName" name="firmName" placeholder="Kamal Traders" />
+            <span>Contact Person</span>
+            <input [(ngModel)]="form.contactPerson" name="contactPerson" placeholder="Rakesh Kumar" maxlength="150" />
           </label>
         </div>
 
         <div class="field-grid two-col">
           <label>
             <span>Phone Number</span>
-            <input [(ngModel)]="form.phoneNumber" name="phoneNumber" placeholder="9876543210" />
+            <input [(ngModel)]="form.phoneNumber" name="phoneNumber" type="tel" placeholder="9876543210" required maxlength="15" />
           </label>
 
           <label>
             <span>Email</span>
-            <input [(ngModel)]="form.email" name="email" type="email" placeholder="supplier@example.com" />
+            <input [(ngModel)]="form.email" name="email" type="email" placeholder="supplier@example.com" maxlength="255" />
+          </label>
+        </div>
+
+        <div class="field-grid two-col">
+          <label>
+            <span>Company / Brand</span>
+            <input [(ngModel)]="form.companyBrand" name="companyBrand" placeholder="HUL, ITC, Britannia" maxlength="150" />
+          </label>
+          <label>
+            <span>Pending Payable (₹)</span>
+            <input [(ngModel)]="form.pendingPayable" name="pendingPayable" type="number" min="0" step="0.01" />
           </label>
         </div>
 
         <label>
-          <span>Details</span>
-          <textarea [(ngModel)]="form.details" name="details" rows="3" placeholder="Supplier details, products, terms, etc."></textarea>
-        </label>
-
-        <label>
-          <span>Address</span>
-          <textarea [(ngModel)]="form.address" name="address" rows="3" placeholder="Market Road, Jaipur"></textarea>
+          <span>Last Delivery Date</span>
+          <input [(ngModel)]="form.lastDeliveryDate" name="lastDeliveryDate" type="datetime-local" />
         </label>
 
         <div class="form-actions">
@@ -63,10 +69,10 @@
 
       <div *ngFor="let supplier of suppliers" class="supplier-card">
         <div class="supplier-header">
-          <div class="supplier-badge">{{ supplier.supplierName.charAt(0) }}</div>
+          <div class="supplier-badge">{{ supplier.name.charAt(0) }}</div>
           <div>
-            <h4>{{ supplier.supplierName }}</h4>
-            <small>{{ supplier.firmName }}</small>
+            <h4>{{ supplier.name }}</h4>
+            <small>{{ supplier.contactPerson || 'No contact person listed' }}</small>
           </div>
         </div>
 
@@ -80,12 +86,16 @@
             <dd>{{ supplier.email || 'N/A' }}</dd>
           </div>
           <div>
-            <dt>Details</dt>
-            <dd>{{ supplier.details || 'No details provided' }}</dd>
+            <dt>Company / Brand</dt>
+            <dd>{{ supplier.companyBrand || 'N/A' }}</dd>
           </div>
           <div>
-            <dt>Address</dt>
-            <dd>{{ supplier.address }}</dd>
+            <dt>Pending Payable</dt>
+            <dd>{{ supplier.pendingPayable | currency:'INR':'symbol':'1.2-2':'en-IN' }}</dd>
+          </div>
+          <div>
+            <dt>Last Delivery</dt>
+            <dd>{{ supplier.lastDeliveryDate ? (supplier.lastDeliveryDate | date:'medium') : 'N/A' }}</dd>
           </div>
         </dl>
       </div>

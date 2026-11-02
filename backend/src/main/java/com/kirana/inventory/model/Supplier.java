@@ -1,46 +1,43 @@
 package com.kirana.inventory.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "suppliers")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class Supplier {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Supplier name is required")
-    @Column(name = "supplier_name", nullable = false)
-    private String supplierName;
+    @Column(name = "name", nullable = false, length = 255)
+    private String name;
 
-    @NotBlank(message = "Firm name is required")
-    @Column(name = "firm_name", nullable = false)
-    private String firmName;
+    @Column(name = "contact_person", length = 150)
+    private String contactPerson;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", nullable = false, length = 15)
     private String phoneNumber;
 
-    @Email(message = "Please provide a valid email")
-    @Column(name = "email")
+    @Column(name = "email", length = 255)
     private String email;
 
-    @Column(name = "details", columnDefinition = "TEXT")
-    private String details;
+    @Column(name = "company_brand", length = 150)
+    private String companyBrand;
 
-    @NotBlank(message = "Address is required")
-    @Column(name = "address", nullable = false, columnDefinition = "TEXT")
-    private String address;
+    @Column(name = "pending_payable", precision = 14, scale = 2)
+    private BigDecimal pendingPayable;
+
+    @Column(name = "last_delivery_date")
+    private LocalDateTime lastDeliveryDate;
 
     public Long getId() {
         return id;
@@ -50,20 +47,20 @@ public class Supplier {
         this.id = id;
     }
 
-    public String getSupplierName() {
-        return supplierName;
+    public String getName() {
+        return name;
     }
 
-    public void setSupplierName(String supplierName) {
-        this.supplierName = supplierName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getFirmName() {
-        return firmName;
+    public String getContactPerson() {
+        return contactPerson;
     }
 
-    public void setFirmName(String firmName) {
-        this.firmName = firmName;
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
     }
 
     public String getPhoneNumber() {
@@ -82,19 +79,27 @@ public class Supplier {
         this.email = email;
     }
 
-    public String getDetails() {
-        return details;
+    public String getCompanyBrand() {
+        return companyBrand;
     }
 
-    public void setDetails(String details) {
-        this.details = details;
+    public void setCompanyBrand(String companyBrand) {
+        this.companyBrand = companyBrand;
     }
 
-    public String getAddress() {
-        return address;
+    public BigDecimal getPendingPayable() {
+        return pendingPayable;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setPendingPayable(BigDecimal pendingPayable) {
+        this.pendingPayable = pendingPayable;
+    }
+
+    public LocalDateTime getLastDeliveryDate() {
+        return lastDeliveryDate;
+    }
+
+    public void setLastDeliveryDate(LocalDateTime lastDeliveryDate) {
+        this.lastDeliveryDate = lastDeliveryDate;
     }
 }

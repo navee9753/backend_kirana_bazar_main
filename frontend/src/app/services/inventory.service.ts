@@ -56,12 +56,13 @@ export interface FestivalConfig {
 
 export interface Supplier {
   id?: number;
-  supplierName: string;
-  firmName: string;
-  phoneNumber?: string;
+  name: string;
+  contactPerson?: string;
+  phoneNumber: string;
   email?: string;
-  details?: string;
-  address: string;
+  companyBrand?: string;
+  pendingPayable: number;
+  lastDeliveryDate?: string | null;
 }
 
 @Injectable({
@@ -110,45 +111,43 @@ export class InventoryService {
   private readLocalSuppliers(): Supplier[] {
     const raw = localStorage.getItem(this.supplierStorageKey);
     if (!raw) {
-      return [
-        {
-          id: 1,
-          supplierName: 'Rajesh Kumar',
-          firmName: 'Kamal Traders',
-          phoneNumber: '9876543210',
-          email: 'kamaltraders@gmail.com',
-          details: 'Wholesale rice and pulses supplier',
-          address: 'Market Road, Jaipur'
-        }
-      ];
+      return this.defaultSuppliers();
     }
 
     try {
-      const parsed = JSON.parse(raw) as Supplier[];
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : [
-        {
-          id: 1,
-          supplierName: 'Rajesh Kumar',
-          firmName: 'Kamal Traders',
-          phoneNumber: '9876543210',
-          email: 'kamaltraders@gmail.com',
-          details: 'Wholesale rice and pulses supplier',
-          address: 'Market Road, Jaipur'
-        }
-      ];
+      const parsed = JSON.parse(raw) as Array<Partial<Supplier> & {
+        supplierName?: string;
+        firmName?: string;
+        details?: string;
+      }>;
+      return Array.isArray(parsed) && parsed.length > 0
+        ? parsed.map((supplier) => ({
+          id: supplier.id,
+          name: supplier.name || supplier.firmName || supplier.supplierName || 'Supplier',
+          contactPerson: supplier.contactPerson || supplier.supplierName,
+          phoneNumber: supplier.phoneNumber || '',
+          email: supplier.email,
+          companyBrand: supplier.companyBrand || supplier.details,
+          pendingPayable: Number(supplier.pendingPayable ?? 0),
+          lastDeliveryDate: supplier.lastDeliveryDate ?? null
+        }))
+        : this.defaultSuppliers();
     } catch {
-      return [
-        {
-          id: 1,
-          supplierName: 'Rajesh Kumar',
-          firmName: 'Kamal Traders',
-          phoneNumber: '9876543210',
-          email: 'kamaltraders@gmail.com',
-          details: 'Wholesale rice and pulses supplier',
-          address: 'Market Road, Jaipur'
-        }
-      ];
+      return this.defaultSuppliers();
     }
+  }
+
+  private defaultSuppliers(): Supplier[] {
+    return [{
+      id: 1,
+      name: 'Kamal Traders',
+      contactPerson: 'Rajesh Kumar',
+      phoneNumber: '9876543210',
+      email: 'kamaltraders@gmail.com',
+      companyBrand: 'Rice and pulses',
+      pendingPayable: 0,
+      lastDeliveryDate: null
+    }];
   }
 
   private persistLocalSuppliers(suppliers: Supplier[]): void {
@@ -275,9 +274,13 @@ export class InventoryService {
     const newSupplier: Supplier = {
       ...supplier,
       id: Date.now(),
-      supplierName: supplier.supplierName.trim(),
-      firmName: supplier.firmName.trim(),
-      address: supplier.address.trim()
+      name: supplier.name.trim(),
+      contactPerson: supplier.contactPerson?.trim() || undefined,
+      phoneNumber: supplier.phoneNumber.trim(),
+      email: supplier.email?.trim() || undefined,
+      companyBrand: supplier.companyBrand?.trim() || undefined,
+      pendingPayable: Number(supplier.pendingPayable ?? 0),
+      lastDeliveryDate: supplier.lastDeliveryDate || null
     };
 
     const updatedSuppliers = [newSupplier, ...currentSuppliers];

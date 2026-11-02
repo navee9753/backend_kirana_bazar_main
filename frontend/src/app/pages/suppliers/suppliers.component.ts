@@ -15,12 +15,13 @@ export class SuppliersPageComponent implements OnInit {
   suppliers: Supplier[] = [];
 
   form: Partial<Supplier> = {
-    supplierName: '',
-    firmName: '',
+    name: '',
+    contactPerson: '',
     phoneNumber: '',
     email: '',
-    details: '',
-    address: ''
+    companyBrand: '',
+    pendingPayable: 0,
+    lastDeliveryDate: null
   };
 
   constructor(private readonly inventoryService: InventoryService) {}
@@ -41,21 +42,22 @@ export class SuppliersPageComponent implements OnInit {
   }
 
   saveSupplier(): void {
-    const supplierName = (this.form.supplierName ?? '').trim();
-    const firmName = (this.form.firmName ?? '').trim();
-    const address = (this.form.address ?? '').trim();
+    const name = (this.form.name ?? '').trim();
+    const phoneNumber = (this.form.phoneNumber ?? '').trim();
+    const pendingPayable = Number(this.form.pendingPayable ?? 0);
 
-    if (!supplierName || !firmName || !address) {
+    if (!name || !phoneNumber || !Number.isFinite(pendingPayable)) {
       return;
     }
 
     const supplier: Supplier = {
-      supplierName,
-      firmName,
-      phoneNumber: (this.form.phoneNumber ?? '').trim(),
+      name,
+      contactPerson: (this.form.contactPerson ?? '').trim(),
+      phoneNumber,
       email: (this.form.email ?? '').trim(),
-      details: (this.form.details ?? '').trim(),
-      address
+      companyBrand: (this.form.companyBrand ?? '').trim(),
+      pendingPayable,
+      lastDeliveryDate: this.form.lastDeliveryDate || null
     };
 
     this.inventoryService.addSupplier(supplier).subscribe({
@@ -72,12 +74,13 @@ export class SuppliersPageComponent implements OnInit {
 
   resetForm(): void {
     this.form = {
-      supplierName: '',
-      firmName: '',
+      name: '',
+      contactPerson: '',
       phoneNumber: '',
       email: '',
-      details: '',
-      address: ''
+      companyBrand: '',
+      pendingPayable: 0,
+      lastDeliveryDate: null
     };
   }
 }

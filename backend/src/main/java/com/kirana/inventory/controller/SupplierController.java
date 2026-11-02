@@ -1,6 +1,7 @@
 package com.kirana.inventory.controller;
 
-import com.kirana.inventory.model.Supplier;
+import com.kirana.inventory.dto.SupplierRequest;
+import com.kirana.inventory.dto.SupplierResponse;
 import com.kirana.inventory.service.SupplierService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,13 +21,13 @@ public class SupplierController {
     }
 
     @GetMapping("/suppliers")
-    public List<Supplier> getAllSuppliers() {
+    public List<SupplierResponse> getAllSuppliers() {
         return supplierService.getAllSuppliers();
     }
 
     @PostMapping("/suppliers")
-    public ResponseEntity<Supplier> createSupplier(@Valid @RequestBody Supplier supplier) {
-        Supplier savedSupplier = supplierService.createSupplier(supplier);
+    public ResponseEntity<SupplierResponse> createSupplier(@Valid @RequestBody SupplierRequest supplier) {
+        SupplierResponse savedSupplier = supplierService.createSupplier(supplier);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedSupplier);
     }
 }

@@ -1,60 +1,233 @@
 <section class="page-shell">
   <header class="page-head">
     <div>
-      <p class="eyebrow">Billing</p>
-      <h2>Point of sale</h2>
+      <p class="eyebrow">Point of sale</p>
+      <h2>Billing</h2>
     </div>
-    <button type="button" class="action-button">+ New bill</button>
+    <button
+      type="button"
+      class="new-bill-button"
+      [disabled]="settling"
+      (click)="newBill()"
+    >
+      New bill
+    </button>
   </header>
 
   <div class="billing-grid">
-    <section class="panel catalog-panel">
-      <div class="panel-head">
-        <h3>Quick items</h3>
+    <section class="catalog-panel" aria-label="Product catalog">
+      <div class="catalog-toolbar">
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            name="productSearch"
+            placeholder="Search products by name or brand"
+            [(ngModel)]="searchTerm"
+            autofocus
+            autocomplete="off"
+            aria-label="Search products by name or brand"
+          />
+        </label>
+        <div class="category-chips" aria-label="Filter products by category">
+          <button
+            type="button"
+            class="category-chip"
+            [class.selected]="selectedCategory === 'All'"
+            [attr.aria-pressed]="selectedCategory === 'All'"
+            (click)="selectedCategory = 'All'"
+          >All</button>
+          <button
+            *ngFor="let category of categories"
+            type="button"
+            class="category-chip"
+            [class.selected]="selectedCategory === category"
+            [attr.aria-pressed]="selectedCategory === category"
+            (click)="selectedCategory = category"
+          >{{ category }}</button>
+        </div>
       </div>
 
-      <div class="catalog-list">
-        <button type="button" class="catalog-item" *ngFor="let item of catalog">
-          <div>
-            <strong>{{ item.name }}</strong>
-            <small>{{ item.qty }} left</small>
-          </div>
-          <span>₹{{ item.price }}</span>
+      <p *ngIf="loading" class="catalog-message">Loading products…</p>
+      <p *ngIf="loadError" class="catalog-message error-message" role="alert">{{ loadError }}</p>
+      <div *ngIf="!loading && !loadError && filteredProducts.length" class="product-grid">
+        <button
+          *ngFor="let product of filteredProducts"
+          type="button"
+          class="product-card"
+          [disabled]="product.currentStock <= 0 || settling"
+          (click)="addToCart(product)"
+        >
+          <span class="product-category">{{ product.category || 'Product' }}</span>
+          <strong class="product-name">{{ product.name }}</strong>
+          <span class="product-brand">{{ product.brand || '—' }}</span>
+          <span class="product-price">MRP {{ formatCurrency(product.mrp) }}</span>
+          <span *ngIf="product.salePrice != null && product.salePrice !== product.mrp" class="product-sale-price">
+            Sale {{ formatCurrency(product.salePrice) }}
+          </span>
+          <span class="product-stock" [class.out-of-stock]="product.currentStock <= 0">
+            {{ product.currentStock <= 0 ? 'Out of stock' : product.currentStock + ' ' + (product.unit || 'in stock') }}
+          </span>
+          <span class="add-product" aria-hidden="true">+</span>
         </button>
       </div>
+      <p *ngIf="!loading && !loadError && !filteredProducts.length" class="catalog-message">
+        No products match this search or category.
+      </p>
     </section>
 
-    <aside class="panel cart-panel">
-      <div class="panel-head">
-        <h3>Cart</h3>
+    <aside class="basket-panel" aria-label="Current bill">
+      <div class="basket-heading">
+        <div>
+          <p class="eyebrow">Current transaction</p>
+          <h3>Digital Basket <span class="item-count">{{ cart.length }}</span></h3>
+        </div>
+        <span class="basket-icon" aria-hidden="true">▤</span>
       </div>
 
-      <div class="cart-list">
-        <div class="cart-item" *ngFor="let item of cart">
-          <div>
-            <strong>{{ item.name }}</strong>
-            <small>{{ item.qty }} x ₹{{ item.price }}</small>
+      <div *ngIf="cart.length; else emptyBasket" class="basket-content">
+        <div class="basket-table-wrap">
+          <table class="basket-table">
+            <thead>
+              <tr>
+                <th scope="col">Item</th>
+                <th scope="col">Price</th>
+                <th scope="col">Qty</th>
+                <th scope="col" class="amount-column">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let line of cart">
+                <td class="item-cell">
+                  <strong>{{ line.product.name }}</strong>
+                  <small>{{ line.product.brand }}</small>
+                </td>
+                <td>{{ formatCurrency(line.unitPrice) }}</td>
+                <td>
+                  <div class="quantity-control" [attr.aria-label]="'Quantity for ' + line.product.name">
+                    <button
+                      type="button"
+                      [attr.aria-label]="'Decrease ' + line.product.name + ' quantity'"
+                      [disabled]="settling"
+                      (click)="changeQuantity(line, -1)"
+                    >−</button>
+                    <span>{{ line.quantity }}</span>
+                    <button
+                      type="button"
+                      [attr.aria-label]="'Increase ' + line.product.name + ' quantity'"
+                      [disabled]="settling"
+                      (click)="changeQuantity(line, 1)"
+                    >+</button>
+                  </div>
+                </td>
+                <td class="amount-column">{{ formatCurrency(line.quantity * line.unitPrice) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <section class="checkout-math" aria-label="Checkout totals">
+          <div class="total-line">
+            <span>Gross total</span>
+            <strong>{{ formatCurrency(grossTotal) }}</strong>
           </div>
-          <span>₹{{ item.qty * item.price }}</span>
+          <label class="discount-field">
+            <span>Custom discount</span>
+            <span class="input-with-prefix">
+              <span>₹</span>
+              <input
+                type="number"
+                name="customDiscount"
+                min="0"
+                [max]="grossTotal"
+                step="0.01"
+                [(ngModel)]="customDiscount"
+                [disabled]="settling"
+                aria-label="Custom discount in rupees"
+              />
+            </span>
+          </label>
+          <p *ngIf="!discountIsValid" class="field-error" role="alert">
+            Discount cannot exceed gross total.
+          </p>
+          <div class="total-line net-total">
+            <span>Net payable</span>
+            <strong>{{ formatCurrency(netPayable) }}</strong>
+          </div>
+        </section>
+
+        <section class="tender-module" aria-label="Cash change calculator">
+          <label for="cashReceived">Cash received</label>
+          <span class="input-with-prefix cash-input">
+            <span>₹</span>
+            <input
+              id="cashReceived"
+              type="number"
+              name="cashReceived"
+              min="0"
+              step="0.01"
+              [(ngModel)]="cashReceived"
+              [disabled]="settling"
+              placeholder="0.00"
+            />
+          </span>
+          <div class="change-line">
+            <span>Change to return</span>
+            <strong>{{ formatCurrency(changeDue) }}</strong>
+          </div>
+        </section>
+
+        <section class="khata-customer" aria-label="Khata customer details">
+          <p class="eyebrow">For credit settlement</p>
+          <label>
+            Customer name
+            <input
+              type="text"
+              name="customerName"
+              [(ngModel)]="customerName"
+              [disabled]="settling"
+              autocomplete="name"
+              placeholder="Name on khata"
+            />
+          </label>
+          <label>
+            Phone number <span class="optional-label">optional</span>
+            <input
+              type="tel"
+              name="customerPhone"
+              [(ngModel)]="customerPhone"
+              [disabled]="settling"
+              autocomplete="tel"
+              inputmode="numeric"
+              maxlength="10"
+              placeholder="10-digit number"
+            />
+          </label>
+        </section>
+
+        <p *ngIf="settlementError" class="field-error settlement-error" role="alert">{{ settlementError }}</p>
+
+        <div class="settlement-actions">
+          <button type="button" class="settlement-button cash-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="settle('Cash')">
+            <span>💵</span> Cash Paid
+          </button>
+          <button type="button" class="settlement-button upi-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="settle('UPI / Online')">
+            <span>📱</span> UPI / Online
+          </button>
+          <button type="button" class="settlement-button khata-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="settle('Udhar Khata')">
+            <span>📓</span> Add to Udhar Khata
+          </button>
         </div>
+        <p *ngIf="settling" class="settling-message" role="status">Updating inventory and completing bill…</p>
       </div>
 
-      <div class="totals">
-        <div class="line">
-          <span>Subtotal</span>
-          <strong>₹{{ subtotal }}</strong>
+      <ng-template #emptyBasket>
+        <div class="empty-basket">
+          <span aria-hidden="true">＋</span>
+          <strong>Your basket is empty</strong>
+          <p>Choose products from the catalog to start a bill.</p>
         </div>
-        <div class="line">
-          <span>Discount</span>
-          <strong>₹0</strong>
-        </div>
-        <div class="line total">
-          <span>Total</span>
-          <strong>₹{{ total }}</strong>
-        </div>
-      </div>
-
-      <button type="button" class="payment-button">Proceed to payment</button>
+      </ng-template>
     </aside>
   </div>
 </section>

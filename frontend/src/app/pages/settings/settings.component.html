@@ -1,21 +1,56 @@
 <section class="page-shell">
   <header class="page-head">
     <div>
-      <p class="eyebrow">Settings</p>
-      <h2>Store preferences</h2>
+      <p class="eyebrow">Settings / About</p>
+      <h2>About our store</h2>
     </div>
-    <div class="header-actions">
-      <button type="button" class="action-button">Save</button>
-      <button type="button" class="logout-button" (click)="logout()">Log out</button>
-    </div>
+    <button type="button" class="logout-button" (click)="logout()">Log out</button>
   </header>
 
-  <div class="settings-grid">
-    <article class="panel" *ngFor="let item of settings">
-      <div class="setting-row">
-        <span>{{ item.label }}</span>
-        <strong>{{ item.value }}</strong>
-      </div>
+  <section class="brand-hero" aria-labelledby="store-title">
+    <p class="hero-kicker">Your neighborhood grocery partner</p>
+    <h1 id="store-title">{{ storeName }}</h1>
+    <p>{{ tagline }}</p>
+  </section>
+
+  <div class="profile-grid">
+    <article class="profile-card business-card">
+      <section aria-labelledby="about-heading">
+        <p class="section-kicker">Our story</p>
+        <h3 id="about-heading"><span aria-hidden="true">ℹ️</span> About Our Establishment</h3>
+        <p class="overview">{{ overview }}</p>
+      </section>
+
+      <section class="highlights-section" aria-labelledby="highlights-heading">
+        <p class="section-kicker">How we work</p>
+        <h3 id="highlights-heading"><span aria-hidden="true">✨</span> Key Operational Highlights</h3>
+        <ul class="highlights-list">
+          <li *ngFor="let highlight of operationalHighlights">
+            <span class="check-icon" aria-hidden="true">✓</span>
+            <span>{{ highlight }}</span>
+          </li>
+        </ul>
+      </section>
     </article>
+
+    <aside class="profile-card contact-card" aria-labelledby="contact-heading">
+      <p class="section-kicker">We’re here to help</p>
+      <h3 id="contact-heading"><span aria-hidden="true">📍</span> Contact &amp; Location Details</h3>
+
+      <div class="contact-list">
+        <article class="contact-item" *ngFor="let detail of contactDetails">
+          <span class="contact-icon" aria-hidden="true">{{ detail.icon }}</span>
+          <div>
+            <h4>{{ detail.label }}</h4>
+            <p>{{ detail.value }}</p>
+          </div>
+        </article>
+      </div>
+    </aside>
   </div>
+
+  <footer class="about-footer">
+    Naveen Kirana Bazar System Platform <span aria-hidden="true">•</span> v2.1.0-Prod
+    <span aria-hidden="true">•</span> Designed with Angular &amp; Spring Boot
+  </footer>
 </section>

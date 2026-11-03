@@ -205,7 +205,10 @@ public class ProductService {
     }
 
     private BigDecimal requiredMoney(String[] row, Map<String, Integer> columns, String column, int csvRow, int maxIntegerDigits) {
-        String value = requiredCell(row, columns, column, csvRow);
+        String value = cell(row, columns, column);
+        if (value.isBlank()) {
+            throw new IllegalArgumentException("Row " + csvRow + ": " + column + " is required.");
+        }
         try {
             BigDecimal amount = new BigDecimal(value);
             if (amount.signum() < 0 || amount.scale() > 2 || amount.precision() - amount.scale() > maxIntegerDigits) {

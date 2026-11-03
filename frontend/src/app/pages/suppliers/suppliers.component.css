@@ -17,6 +17,54 @@
   letter-spacing: -0.04em;
 }
 
+.import-button {
+  position: relative;
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: #fff;
+  padding: 0.75rem 1rem;
+  color: var(--slate-700);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.import-button input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.import-button.disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.import-message {
+  margin: 0;
+  border-radius: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  font-weight: 600;
+}
+
+.import-message.success {
+  background: var(--success-100);
+  color: var(--success-500);
+}
+
+.import-message.error {
+  background: var(--danger-100);
+  color: var(--danger-500);
+}
+
 .eyebrow {
   margin: 0 0 0.45rem;
   font-size: 0.68rem;

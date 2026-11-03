@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -13,6 +14,9 @@ import { InventoryService, Supplier } from '../../services/inventory.service';
 })
 export class SuppliersPageComponent implements OnInit {
   suppliers: Supplier[] = [];
+  importing = false;
+  importMessage = '';
+  importError = '';
 
   form: Partial<Supplier> = {
     name: '',
@@ -82,5 +86,45 @@ export class SuppliersPageComponent implements OnInit {
       pendingPayable: 0,
       lastDeliveryDate: null
     };
+  }
+
+  importFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    this.importMessage = '';
+    this.importError = '';
+
+    if (!file) {
+      return;
+    }
+    if (!/\.(csv|xls|xlsx)$/i.test(file.name)) {
+      this.importError = 'Choose a CSV, XLS, or XLSX file.';
+      return;
+    }
+
+    this.importing = true;
+    this.inventoryService.importSuppliers(file).subscribe({
+      next: (result) => {
+        this.importing = false;
+        this.importMessage = `${result.importedCount} supplier(s) imported.`;
+        this.loadSuppliers();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.importing = false;
+        this.importError = this.messageForImportError(error);
+      }
+    });
+  }
+
+  private messageForImportError(error: HttpErrorResponse): string {
+    const serverMessage = error.error?.detail || error.error?.message || error.error?.error;
+    if (serverMessage) {
+      return String(serverMessage);
+    }
+    if (error.status === 0) {
+      return 'Could not reach the server. Check your connection and try again.';
+    }
+    return 'Supplier import failed. Check the file headers and row values.';
   }
 }

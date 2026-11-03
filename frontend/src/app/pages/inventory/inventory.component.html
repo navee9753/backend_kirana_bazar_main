@@ -4,8 +4,23 @@
       <p class="eyebrow">Inventory</p>
       <h2>Stock control</h2>
     </div>
-    <button type="button" class="action-button" (click)="openCreateForm()">+ Add item</button>
+    <div class="page-actions">
+      <label class="import-button" [class.disabled]="importing">
+        {{ importing ? 'Importing…' : 'Import file' }}
+        <input
+          type="file"
+          accept=".csv,.xls,.xlsx"
+          [disabled]="importing"
+          (change)="importFile($event)"
+          aria-label="Import products from CSV or Excel"
+        />
+      </label>
+      <button type="button" class="action-button" (click)="openCreateForm()">+ Add item</button>
+    </div>
   </header>
+
+  <p *ngIf="importMessage" class="import-message success" role="status">{{ importMessage }}</p>
+  <p *ngIf="importError" class="import-message error" role="alert">{{ importError }}</p>
 
   <form class="panel form-panel" *ngIf="showForm" (ngSubmit)="submitForm()" novalidate>
     <div class="section">

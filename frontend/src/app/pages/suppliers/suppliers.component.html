@@ -4,7 +4,20 @@
       <p class="eyebrow">Suppliers</p>
       <h2>Supplier directory</h2>
     </div>
+    <label class="import-button" [class.disabled]="importing">
+      {{ importing ? 'Importing…' : 'Import file' }}
+      <input
+        type="file"
+        accept=".csv,.xls,.xlsx"
+        [disabled]="importing"
+        (change)="importFile($event)"
+        aria-label="Import suppliers from CSV or Excel"
+      />
+    </label>
   </header>
+
+  <p *ngIf="importMessage" class="import-message success" role="status">{{ importMessage }}</p>
+  <p *ngIf="importError" class="import-message error" role="alert">{{ importError }}</p>
 
   <div class="content-grid">
     <section class="panel form-panel">

@@ -9,5 +9,6 @@
     <include file="classpath:/db/changelog/v1.1-seed-users.xml"/>
     <include file="classpath:/db/changelog/v1.2-suppliers.xml"/>
     <include file="classpath:/db/changelog/v1.3-supplier-fields.xml"/>
+    <include file="classpath:/db/changelog/v1.4-supplier-legacy-address.xml"/>
 
 </databaseChangeLog>

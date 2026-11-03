@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -29,6 +30,9 @@ export class InventoryPageComponent implements OnInit {
   saving = false;
   formError = '';
   editingId: number | null = null;
+  importing = false;
+  importMessage = '';
+  importError = '';
 
   form = {
     name: '',
@@ -155,5 +159,45 @@ export class InventoryPageComponent implements OnInit {
       next: () => this.load(),
       error: () => alert('Unable to delete the item right now.')
     });
+  }
+
+  importFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    this.importMessage = '';
+    this.importError = '';
+
+    if (!file) {
+      return;
+    }
+    if (!/\.(csv|xls|xlsx)$/i.test(file.name)) {
+      this.importError = 'Choose a CSV, XLS, or XLSX file.';
+      return;
+    }
+
+    this.importing = true;
+    this.inventoryService.importProducts(file).subscribe({
+      next: (result) => {
+        this.importing = false;
+        this.importMessage = `${result.importedCount} product(s) imported.`;
+        this.load();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.importing = false;
+        this.importError = this.messageForImportError(error);
+      }
+    });
+  }
+
+  private messageForImportError(error: HttpErrorResponse): string {
+    const serverMessage = error.error?.detail || error.error?.message || error.error?.error;
+    if (serverMessage) {
+      return String(serverMessage);
+    }
+    if (error.status === 0) {
+      return 'Could not reach the server. Check your connection and try again.';
+    }
+    return 'Product import failed. Check the file headers and row values.';
   }
 }

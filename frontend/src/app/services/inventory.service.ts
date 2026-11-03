@@ -65,6 +65,10 @@ export interface Supplier {
   lastDeliveryDate?: string | null;
 }
 
+export interface BulkImportResponse {
+  importedCount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -210,6 +214,14 @@ export class InventoryService {
     );
   }
 
+  importProducts(file: File): Observable<BulkImportResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<BulkImportResponse>(`${this.productUrl}/import`, formData, {
+      headers: this.authHeaders()
+    });
+  }
+
   getDashboardSummary(): Observable<DashboardSummary> {
     return this.http.get<DashboardSummary>(`${this.apiBaseUrl}/api/dashboard/summary`, { headers: this.authHeaders() });
   }
@@ -267,6 +279,14 @@ export class InventoryService {
     return this.http.get<Supplier[]>(`${this.apiBaseUrl}/api/suppliers`, { headers: this.authHeaders() }).pipe(
       catchError(() => of(this.readLocalSuppliers()))
     );
+  }
+
+  importSuppliers(file: File): Observable<BulkImportResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<BulkImportResponse>(`${this.apiBaseUrl}/api/suppliers/import`, formData, {
+      headers: this.authHeaders()
+    });
   }
 
   addSupplier(supplier: Supplier): Observable<Supplier> {

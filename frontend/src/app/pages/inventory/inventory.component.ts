@@ -205,13 +205,43 @@ export class InventoryPageComponent implements OnInit {
   }
 
   private messageForImportError(error: HttpErrorResponse): string {
-    const serverMessage = error.error?.detail || error.error?.message || error.error?.error;
+    const body: unknown = error.error;
+    const serverMessage = this.extractServerMessage(body);
     if (serverMessage) {
-      return String(serverMessage);
+      return serverMessage;
+    }
+    if (error.status === 413) {
+      return 'The file is too large. The maximum upload size is 20 MB.';
     }
     if (error.status === 0) {
       return 'Could not reach the server. Check your connection and try again.';
     }
-    return 'Product import failed. Check the file headers and row values.';
+    return `Product import failed (HTTP ${error.status}). Check the backend response for details.`;
+  }
+
+  private extractServerMessage(body: unknown): string {
+    if (typeof body === 'string') {
+      return body.trim();
+    }
+    if (!body || typeof body !== 'object') {
+      return '';
+    }
+
+    const response = body as Record<string, unknown>;
+    for (const key of ['detail', 'message', 'error', 'title']) {
+      const value = response[key];
+      if (typeof value === 'string' && value.trim()) {
+        return value.trim();
+      }
+    }
+
+    const errors = response['errors'];
+    if (Array.isArray(errors)) {
+      return errors.map((value) => String(value)).join(' ');
+    }
+    if (errors && typeof errors === 'object') {
+      return Object.values(errors as Record<string, unknown>).map((value) => String(value)).join(' ');
+    }
+    return '';
   }
 }

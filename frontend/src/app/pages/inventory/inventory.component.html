@@ -5,6 +5,9 @@
       <h2>Stock control</h2>
     </div>
     <div class="page-actions">
+      <button type="button" class="template-button" (click)="downloadImportTemplate()">
+        Download sample CSV
+      </button>
       <label class="import-button" [class.disabled]="importing">
         {{ importing ? 'Importing…' : 'Import file' }}
         <input
@@ -18,6 +21,7 @@
       <button type="button" class="action-button" (click)="openCreateForm()">+ Add item</button>
     </div>
   </header>
+  <p class="template-hint">The CSV includes every importable product column. Product IDs are generated automatically.</p>
 
   <p *ngIf="importMessage" class="import-message success" role="status">{{ importMessage }}</p>
   <p *ngIf="importError" class="import-message error" role="alert">{{ importError }}</p>

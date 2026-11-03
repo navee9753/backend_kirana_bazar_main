@@ -40,6 +40,29 @@
   font-weight: 700;
 }
 
+.template-button {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 9px 13px;
+  color: var(--slate-700);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.template-button:hover {
+  border-color: var(--brand-500);
+  color: var(--brand-700);
+}
+
+.template-hint {
+  margin: -12px 0 0;
+  color: var(--slate-500);
+  font-size: 0.8rem;
+}
+
 .import-button {
   position: relative;
   display: inline-flex;

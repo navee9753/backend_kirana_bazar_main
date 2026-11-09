@@ -1,95 +1,60 @@
 <section class="page-shell">
   <header class="page-head">
-    <div>
+    <div class="page-title">
       <p class="eyebrow">Suppliers</p>
       <h2>Supplier directory</h2>
+      <p class="page-subtitle">Manage supplier relationships, invoices, and balances in one place.</p>
     </div>
-    <label class="import-button" [class.disabled]="importing">
-      {{ importing ? 'Importing…' : 'Import file' }}
-      <input
-        type="file"
-        accept=".csv,.xls,.xlsx"
-        [disabled]="importing"
-        (change)="importFile($event)"
-        aria-label="Import suppliers from CSV or Excel"
-      />
-    </label>
+    <div class="header-actions">
+      <label class="import-button" [class.disabled]="importing">
+        {{ importing ? 'Importing…' : 'Import file' }}
+        <input
+          type="file"
+          accept=".csv,.xls,.xlsx"
+          [disabled]="importing"
+          (change)="importFile($event)"
+          aria-label="Import suppliers from CSV or Excel"
+        />
+      </label>
+      <button type="button" class="add-supplier-button" (click)="openSupplierModal()">
+        <span aria-hidden="true">➕</span>
+        <span>Add New Supplier</span>
+      </button>
+    </div>
   </header>
 
   <p *ngIf="importMessage" class="import-message success" role="status">{{ importMessage }}</p>
   <p *ngIf="importError" class="import-message error" role="alert">{{ importError }}</p>
 
-  <div class="content-grid">
-    <section class="panel form-panel">
-      <div class="panel-head">
-        <h3>Add Supplier</h3>
-      </div>
-
-      <form class="supplier-form" (ngSubmit)="saveSupplier()">
-        <div class="field-grid two-col">
-          <label>
-            <span>Distributor Name</span>
-            <input [(ngModel)]="form.name" name="name" placeholder="Balaji HUL Distributor" required maxlength="255" />
-          </label>
-
-          <label>
-            <span>Contact Person</span>
-            <input [(ngModel)]="form.contactPerson" name="contactPerson" placeholder="Rakesh Kumar" maxlength="150" />
-          </label>
-        </div>
-
-        <div class="field-grid two-col">
-          <label>
-            <span>Phone Number</span>
-            <input [(ngModel)]="form.phoneNumber" name="phoneNumber" type="tel" placeholder="9876543210" required maxlength="15" />
-          </label>
-
-          <label>
-            <span>Email</span>
-            <input [(ngModel)]="form.email" name="email" type="email" placeholder="supplier@example.com" maxlength="255" />
-          </label>
-        </div>
-
-        <div class="field-grid two-col">
-          <label>
-            <span>Company / Brand</span>
-            <input [(ngModel)]="form.companyBrand" name="companyBrand" placeholder="HUL, ITC, Britannia" maxlength="150" />
-          </label>
-          <label>
-            <span>Pending Payable (₹)</span>
-            <input [(ngModel)]="form.pendingPayable" name="pendingPayable" type="number" min="0" step="0.01" />
-          </label>
-        </div>
-
-        <label>
-          <span>Last Delivery Date</span>
-          <input [(ngModel)]="form.lastDeliveryDate" name="lastDeliveryDate" type="datetime-local" />
-        </label>
-
-        <div class="form-actions">
-          <button type="button" class="secondary-button" (click)="resetForm()">Clear</button>
-          <button type="submit" class="action-button">Save Supplier</button>
-        </div>
-      </form>
-    </section>
-
-    <section class="panel list-panel">
-      <div class="panel-head">
+  <section class="panel list-panel">
+    <div class="panel-head roster-head">
+      <div>
         <h3>Saved Suppliers</h3>
+        <p>{{ suppliers.length }} supplier{{ suppliers.length === 1 ? '' : 's' }} in your directory</p>
       </div>
+    </div>
 
-      <div *ngIf="suppliers.length === 0" class="empty-state">No suppliers added yet.</div>
+    <div *ngIf="suppliers.length === 0" class="empty-state">
+      <span class="empty-icon" aria-hidden="true">🏪</span>
+      <strong>No suppliers yet</strong>
+      <span>Add a supplier to start recording purchase invoices.</span>
+    </div>
 
-      <div *ngFor="let supplier of suppliers" class="supplier-card">
+    <article *ngFor="let supplier of suppliers" class="supplier-card">
+      <div class="supplier-card-main">
         <div class="supplier-header">
           <div class="supplier-badge">{{ supplier.name.charAt(0) }}</div>
-          <div>
+          <div class="supplier-identity">
             <h4>{{ supplier.name }}</h4>
             <small>{{ supplier.contactPerson || 'No contact person listed' }}</small>
           </div>
+          <div class="supplier-balance">
+            <span>Pending payable</span>
+            <strong>{{ supplier.pendingPayable | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
+          </div>
         </div>
 
-        <dl>
+        <dl class="supplier-details">
           <div>
             <dt>Phone</dt>
             <dd>{{ supplier.phoneNumber || 'N/A' }}</dd>
@@ -103,15 +68,238 @@
             <dd>{{ supplier.companyBrand || 'N/A' }}</dd>
           </div>
           <div>
-            <dt>Pending Payable</dt>
-            <dd>{{ supplier.pendingPayable | currency:'INR':'symbol':'1.2-2':'en-IN' }}</dd>
-          </div>
-          <div>
-            <dt>Last Delivery</dt>
-            <dd>{{ supplier.lastDeliveryDate ? (supplier.lastDeliveryDate | date:'medium') : 'N/A' }}</dd>
+            <dt>Last delivery</dt>
+            <dd>{{ supplier.lastDeliveryDate ? (supplier.lastDeliveryDate | date:'mediumDate') : 'N/A' }}</dd>
           </div>
         </dl>
+
+        <div class="supplier-actions">
+          <button
+            type="button"
+            class="purchase-action"
+            [disabled]="!supplier.id"
+            (click)="openPurchasePanel(supplier)"
+          >
+            <span aria-hidden="true">🛒</span>
+            <span>Record Purchase</span>
+          </button>
+          <button
+            type="button"
+            class="history-action"
+            [disabled]="!supplier.id"
+            [attr.aria-expanded]="expandedHistorySupplierId === supplier.id"
+            (click)="togglePurchaseHistory(supplier)"
+          >
+            {{ expandedHistorySupplierId === supplier.id ? 'Hide purchase history' : 'View purchase history' }}
+            <span aria-hidden="true">{{ expandedHistorySupplierId === supplier.id ? '⌃' : '⌄' }}</span>
+          </button>
+        </div>
       </div>
-    </section>
-  </div>
+
+      <section *ngIf="expandedHistorySupplierId === supplier.id" class="history-section" aria-label="Supplier purchase history">
+        <div class="history-heading">
+          <h5>Purchase history</h5>
+          <span *ngIf="purchaseHistory[supplier.id!]">{{ purchaseHistory[supplier.id!].length }} invoice(s)</span>
+        </div>
+        <p *ngIf="loadingHistory[supplier.id!]" class="history-state">Loading purchase history…</p>
+        <p *ngIf="historyErrors[supplier.id!]" class="inline-error" role="alert">{{ historyErrors[supplier.id!] }}</p>
+        <p *ngIf="!loadingHistory[supplier.id!] && !historyErrors[supplier.id!] && purchaseHistory[supplier.id!]?.length === 0" class="history-state">
+          No purchases recorded for this supplier yet.
+        </p>
+        <div *ngIf="purchaseHistory[supplier.id!]?.length" class="table-scroll">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Rate</th>
+                <th>Total Invoice Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let purchase of purchaseHistory[supplier.id!]">
+                <td>{{ purchase.purchaseDate | date:'medium' }}</td>
+                <td>{{ productName(purchase.productId) }}</td>
+                <td>{{ purchase.quantityPurchased }}</td>
+                <td>{{ purchase.purchaseRate | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+                <td class="invoice-value">{{ purchase.totalAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </article>
+  </section>
+
+  <section class="panel inventory-panel" aria-label="Inventory stock snapshot">
+    <div class="panel-head inventory-head">
+      <div>
+        <h3>Inventory snapshot</h3>
+        <p>Current on-hand quantity across your catalog</p>
+      </div>
+      <span class="inventory-count">{{ products.length }} products</span>
+    </div>
+    <p *ngIf="products.length === 0" class="history-state">No product inventory is available.</p>
+    <div *ngIf="products.length" class="inventory-list">
+      <div *ngFor="let product of products" class="inventory-item">
+        <div class="inventory-product">
+          <strong>{{ product.name }}</strong>
+          <span>{{ product.brand || product.category || 'Product' }}</span>
+        </div>
+        <span class="stock-count">{{ product.currentStock }} <small>in stock</small></span>
+      </div>
+    </div>
+  </section>
 </section>
+
+<div *ngIf="showSupplierModal" class="modal-backdrop" (click)="closeSupplierModal()">
+  <section
+    class="modal-card"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="add-supplier-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="modal-header">
+      <div>
+        <p class="eyebrow">Supplier setup</p>
+        <h3 id="add-supplier-title">Add New Supplier</h3>
+        <p>Enter supplier details to add them to your directory.</p>
+      </div>
+      <button type="button" class="icon-button" aria-label="Close add supplier form" (click)="closeSupplierModal()">×</button>
+    </header>
+
+    <form class="modal-form" #supplierForm="ngForm" (ngSubmit)="saveSupplier()">
+      <div class="field-grid two-col">
+        <label>
+          <span>Supplier Name <b>*</b></span>
+          <input [(ngModel)]="form.name" name="name" placeholder="Balaji HUL Distributor" required maxlength="255" />
+        </label>
+        <label>
+          <span>Contact Person</span>
+          <input [(ngModel)]="form.contactPerson" name="contactPerson" placeholder="Rakesh Kumar" maxlength="150" />
+        </label>
+      </div>
+
+      <div class="field-grid two-col">
+        <label>
+          <span>Phone Number <b>*</b></span>
+          <input [(ngModel)]="form.phoneNumber" name="phoneNumber" type="tel" placeholder="9876543210" required maxlength="15" />
+        </label>
+        <label>
+          <span>Email</span>
+          <input [(ngModel)]="form.email" name="email" type="email" placeholder="supplier@example.com" maxlength="255" />
+        </label>
+      </div>
+
+      <div class="field-grid two-col">
+        <label>
+          <span>Company / Brand</span>
+          <input [(ngModel)]="form.companyBrand" name="companyBrand" placeholder="HUL, ITC, Britannia" maxlength="150" />
+        </label>
+        <label>
+          <span>Initial Pending Balance (₹)</span>
+          <input [(ngModel)]="form.pendingPayable" name="pendingPayable" type="number" min="0" step="0.01" />
+        </label>
+      </div>
+
+      <p *ngIf="supplierError" class="inline-error" role="alert">{{ supplierError }}</p>
+      <div class="modal-actions">
+        <button type="button" class="secondary-button" [disabled]="savingSupplier" (click)="closeSupplierModal()">Cancel</button>
+        <button type="submit" class="submit-button" [disabled]="savingSupplier || supplierForm.invalid">
+          {{ savingSupplier ? 'Saving…' : 'Save Supplier' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<div *ngIf="purchaseSupplier" class="drawer-backdrop" (click)="closePurchasePanel()">
+  <aside
+    class="purchase-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="purchase-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="drawer-header">
+      <div>
+        <p class="eyebrow">New supplier invoice</p>
+        <h3 id="purchase-title">Log New Purchase</h3>
+        <p>Supplier: <strong>{{ purchaseSupplier.name }}</strong></p>
+      </div>
+      <button type="button" class="icon-button" aria-label="Close purchase form" (click)="closePurchasePanel()">×</button>
+    </header>
+
+    <form class="purchase-form" #purchaseFormRef="ngForm" (ngSubmit)="recordPurchase()">
+      <label>
+        <span>Product</span>
+        <select
+          [(ngModel)]="purchaseForm.productId"
+          name="productId"
+          required
+          (ngModelChange)="onPurchaseProductChange()"
+        >
+          <option [ngValue]="null" disabled>Select a product</option>
+          <option *ngFor="let product of products" [ngValue]="product.id" [disabled]="!product.id">
+            {{ product.name }}{{ product.brand ? ' · ' + product.brand : '' }}
+          </option>
+        </select>
+      </label>
+
+      <div *ngIf="selectedProduct" class="selected-product-stock">
+        <span>Current stock</span>
+        <strong>{{ selectedProduct.currentStock }} units</strong>
+      </div>
+
+      <div class="field-grid two-col">
+        <label>
+          <span>Quantity Purchased</span>
+          <input
+            [(ngModel)]="purchaseForm.quantityPurchased"
+            name="quantityPurchased"
+            type="number"
+            min="1"
+            step="1"
+            required
+          />
+        </label>
+        <label>
+          <span>Wholesale Buying Rate (₹)</span>
+          <input
+            [(ngModel)]="purchaseForm.purchaseRate"
+            name="purchaseRate"
+            type="number"
+            min="0"
+            step="0.01"
+            required
+          />
+        </label>
+      </div>
+
+      <div class="bill-total">
+        <span>Estimated bill total</span>
+        <strong>{{ estimatedTotal | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
+        <small>Quantity × wholesale buying rate</small>
+      </div>
+
+      <p *ngIf="purchaseError" class="inline-error" role="alert">{{ purchaseError }}</p>
+      <div class="drawer-actions">
+        <button type="button" class="secondary-button" [disabled]="savingPurchase" (click)="closePurchasePanel()">Cancel</button>
+        <button
+          type="submit"
+          class="purchase-submit"
+          [disabled]="savingPurchase || purchaseFormRef.invalid || products.length === 0"
+        >
+          {{ savingPurchase ? 'Recording…' : 'Record Purchase' }}
+        </button>
+      </div>
+    </form>
+  </aside>
+</div>
+
+<div *ngIf="toastMessage" class="success-toast" role="status" aria-live="polite">
+  <span class="toast-check" aria-hidden="true">✓</span>
+  {{ toastMessage }}
+</div>

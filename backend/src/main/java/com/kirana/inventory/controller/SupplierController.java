@@ -3,6 +3,8 @@ package com.kirana.inventory.controller;
 import com.kirana.inventory.dto.BulkImportResponse;
 import com.kirana.inventory.dto.SupplierRequest;
 import com.kirana.inventory.dto.SupplierResponse;
+import com.kirana.inventory.dto.SupplierPurchaseRequest;
+import com.kirana.inventory.dto.SupplierPurchaseResponse;
 import com.kirana.inventory.service.SupplierService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,20 @@ public class SupplierController {
     public ResponseEntity<SupplierResponse> createSupplier(@Valid @RequestBody SupplierRequest supplier) {
         SupplierResponse savedSupplier = supplierService.createSupplier(supplier);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedSupplier);
+    }
+
+    @PostMapping("/suppliers/{id}/purchases")
+    public ResponseEntity<SupplierPurchaseResponse> recordPurchase(
+            @PathVariable Long id,
+            @Valid @RequestBody SupplierPurchaseRequest purchaseRequest
+    ) {
+        SupplierPurchaseResponse purchase = supplierService.recordPurchase(id, purchaseRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(purchase);
+    }
+
+    @GetMapping("/suppliers/{id}/purchases")
+    public List<SupplierPurchaseResponse> getSupplierPurchases(@PathVariable Long id) {
+        return supplierService.getSupplierPurchases(id);
     }
 
     @PostMapping("/suppliers/import")

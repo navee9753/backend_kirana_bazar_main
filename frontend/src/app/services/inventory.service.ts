@@ -65,6 +65,16 @@ export interface Supplier {
   lastDeliveryDate?: string | null;
 }
 
+export interface SupplierPurchase {
+  id: number;
+  supplierId: number;
+  productId: number;
+  quantityPurchased: number;
+  purchaseRate: number;
+  totalAmount: number;
+  purchaseDate: string;
+}
+
 export interface BulkImportResponse {
   importedCount: number;
 }
@@ -290,24 +300,21 @@ export class InventoryService {
   }
 
   addSupplier(supplier: Supplier): Observable<Supplier> {
-    const currentSuppliers = this.readLocalSuppliers();
-    const newSupplier: Supplier = {
-      ...supplier,
-      id: Date.now(),
-      name: supplier.name.trim(),
-      contactPerson: supplier.contactPerson?.trim() || undefined,
-      phoneNumber: supplier.phoneNumber.trim(),
-      email: supplier.email?.trim() || undefined,
-      companyBrand: supplier.companyBrand?.trim() || undefined,
-      pendingPayable: Number(supplier.pendingPayable ?? 0),
-      lastDeliveryDate: supplier.lastDeliveryDate || null
-    };
+    return this.http.post<Supplier>(`${this.apiBaseUrl}/api/suppliers`, supplier, { headers: this.authHeaders() });
+  }
 
-    const updatedSuppliers = [newSupplier, ...currentSuppliers];
-    this.persistLocalSuppliers(updatedSuppliers);
+  recordSupplierPurchase(supplierId: number, purchase: Omit<SupplierPurchase, 'id' | 'supplierId' | 'totalAmount' | 'purchaseDate'>): Observable<SupplierPurchase> {
+    return this.http.post<SupplierPurchase>(
+      `${this.apiBaseUrl}/api/suppliers/${supplierId}/purchases`,
+      purchase,
+      { headers: this.authHeaders() }
+    );
+  }
 
-    return this.http.post<Supplier>(`${this.apiBaseUrl}/api/suppliers`, supplier, { headers: this.authHeaders() }).pipe(
-      catchError(() => of(newSupplier))
+  getSupplierPurchases(supplierId: number): Observable<SupplierPurchase[]> {
+    return this.http.get<SupplierPurchase[]>(
+      `${this.apiBaseUrl}/api/suppliers/${supplierId}/purchases`,
+      { headers: this.authHeaders() }
     );
   }
 

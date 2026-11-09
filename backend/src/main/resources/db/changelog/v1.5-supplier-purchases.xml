@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.5-create-supplier-purchases" author="copilot">
+        <createTable tableName="supplier_purchases">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="supplier_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity_purchased" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="purchase_rate" type="NUMERIC(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_amount" type="NUMERIC(14,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="purchase_date" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="supplier_purchases"
+                baseColumnNames="supplier_id"
+                constraintName="fk_supplier_purchases_supplier"
+                referencedTableName="suppliers"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+        <addForeignKeyConstraint
+                baseTableName="supplier_purchases"
+                baseColumnNames="product_id"
+                constraintName="fk_supplier_purchases_product"
+                referencedTableName="products"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+        <createIndex tableName="supplier_purchases" indexName="idx_supplier_purchases_supplier_id">
+            <column name="supplier_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

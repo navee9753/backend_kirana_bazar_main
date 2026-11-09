@@ -2,12 +2,20 @@ package com.kirana.inventory.service;
 
 import com.kirana.inventory.dto.SupplierRequest;
 import com.kirana.inventory.dto.SupplierResponse;
+import com.kirana.inventory.dto.SupplierPurchaseRequest;
+import com.kirana.inventory.dto.SupplierPurchaseResponse;
+import com.kirana.inventory.model.Product;
 import com.kirana.inventory.model.Supplier;
+import com.kirana.inventory.model.SupplierPurchase;
+import com.kirana.inventory.repository.ProductRepository;
+import com.kirana.inventory.repository.SupplierPurchaseRepository;
 import com.kirana.inventory.repository.SupplierRepository;
 import com.kirana.inventory.util.FileImportHelper;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -20,9 +28,17 @@ import java.util.Set;
 public class SupplierService {
 
     private final SupplierRepository supplierRepository;
+    private final ProductRepository productRepository;
+    private final SupplierPurchaseRepository supplierPurchaseRepository;
 
-    public SupplierService(SupplierRepository supplierRepository) {
+    public SupplierService(
+            SupplierRepository supplierRepository,
+            ProductRepository productRepository,
+            SupplierPurchaseRepository supplierPurchaseRepository
+    ) {
         this.supplierRepository = supplierRepository;
+        this.productRepository = productRepository;
+        this.supplierPurchaseRepository = supplierPurchaseRepository;
     }
 
     @Transactional(readOnly = true)
@@ -43,6 +59,60 @@ public class SupplierService {
         supplier.setPendingPayable(request.pendingPayable() == null ? BigDecimal.ZERO : request.pendingPayable());
         supplier.setLastDeliveryDate(request.lastDeliveryDate());
         return toResponse(supplierRepository.save(supplier));
+    }
+
+    @Transactional
+    public SupplierPurchaseResponse recordPurchase(Long supplierId, SupplierPurchaseRequest request) {
+        Product product = productRepository.findByIdForUpdate(request.productId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+        Supplier supplier = supplierRepository.findByIdForUpdate(supplierId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found"));
+
+        BigDecimal totalAmount = request.purchaseRate()
+                .multiply(BigDecimal.valueOf(request.quantityPurchased()))
+                .setScale(2);
+        if (totalAmount.precision() - totalAmount.scale() > 12) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Total amount exceeds NUMERIC(14,2)");
+        }
+
+        int currentStock = product.getCurrentStock() == null ? 0 : product.getCurrentStock();
+        final int updatedStock;
+        try {
+            updatedStock = Math.addExact(currentStock, request.quantityPurchased());
+        } catch (ArithmeticException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Updated product stock exceeds the supported range", exception);
+        }
+        BigDecimal updatedPendingPayable = (supplier.getPendingPayable() == null
+                ? BigDecimal.ZERO
+                : supplier.getPendingPayable()).add(totalAmount);
+        if (updatedPendingPayable.precision() - updatedPendingPayable.scale() > 12) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Updated supplier payable exceeds NUMERIC(14,2)");
+        }
+
+        SupplierPurchase purchase = new SupplierPurchase();
+        purchase.setSupplier(supplier);
+        purchase.setProduct(product);
+        purchase.setQuantityPurchased(request.quantityPurchased());
+        purchase.setPurchaseRate(request.purchaseRate());
+        purchase.setTotalAmount(totalAmount);
+
+        product.setCurrentStock(updatedStock);
+        supplier.setPendingPayable(updatedPendingPayable);
+
+        SupplierPurchase savedPurchase = supplierPurchaseRepository.save(purchase);
+        productRepository.save(product);
+        supplierRepository.save(supplier);
+        return toPurchaseResponse(savedPurchase);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SupplierPurchaseResponse> getSupplierPurchases(Long supplierId) {
+        if (!supplierRepository.existsById(supplierId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found");
+        }
+        return supplierPurchaseRepository.findBySupplierId(supplierId).stream()
+                .map(this::toPurchaseResponse)
+                .toList();
     }
 
     @Transactional
@@ -86,6 +156,18 @@ public class SupplierService {
                 supplier.getCompanyBrand(),
                 supplier.getPendingPayable() == null ? BigDecimal.ZERO : supplier.getPendingPayable(),
                 supplier.getLastDeliveryDate()
+        );
+    }
+
+    private SupplierPurchaseResponse toPurchaseResponse(SupplierPurchase purchase) {
+        return new SupplierPurchaseResponse(
+                purchase.getId(),
+                purchase.getSupplier().getId(),
+                purchase.getProduct().getId(),
+                purchase.getQuantityPurchased(),
+                purchase.getPurchaseRate(),
+                purchase.getTotalAmount(),
+                purchase.getPurchaseDate()
         );
     }
 

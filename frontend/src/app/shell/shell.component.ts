@@ -13,6 +13,7 @@ export class ShellComponent {
   navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: '▣' },
     { label: 'Inventory', path: '/inventory', icon: '▤' },
+    { label: 'Scan', path: '/scan-inspect', icon: '⌗' },
     { label: 'Khata', path: '/khata', icon: '◫' },
     { label: 'Billing', path: '/billing', icon: '◌' },
     { label: 'Suppliers', path: '/suppliers', icon: '◍' },

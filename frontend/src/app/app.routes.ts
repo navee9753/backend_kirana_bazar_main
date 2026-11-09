@@ -8,6 +8,7 @@ import { KhataPageComponent } from './pages/khata/khata.component';
 import { BillingPageComponent } from './pages/billing/billing.component';
 import { SettingsPageComponent } from './pages/settings/settings.component';
 import { SuppliersPageComponent } from './pages/suppliers/suppliers.component';
+import { ScanInspectComponent } from './components/scan-inspect.component';
 import { ShellComponent } from './shell/shell.component';
 
 export const routes: Routes = [
@@ -20,6 +21,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardPageComponent },
       { path: 'inventory', component: InventoryPageComponent },
+      { path: 'scan-inspect', component: ScanInspectComponent },
       { path: 'inventory/new', component: ProductFormPageComponent },
       { path: 'khata', component: KhataPageComponent },
       { path: 'billing', component: BillingPageComponent },

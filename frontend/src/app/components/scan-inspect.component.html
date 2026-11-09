@@ -1,0 +1,129 @@
+<main class="scan-page">
+  <header class="scan-page-header">
+    <div>
+      <p class="scan-eyebrow">Inventory tools</p>
+      <h1>Scan &amp; inspect</h1>
+      <p class="scan-subtitle">Point your camera at a product barcode to check live stock and value.</p>
+    </div>
+    <span class="live-pill"><span></span> Live inventory</span>
+  </header>
+
+  <section class="scan-card">
+    <div class="scanner-heading">
+      <div>
+        <h2>Barcode scanner</h2>
+        <p>Keep the barcode inside the frame</p>
+      </div>
+      <span class="camera-state" [class.camera-ready]="hasCameras">
+        <span class="camera-dot"></span>
+        {{ hasCameras ? 'Camera ready' : 'Finding camera' }}
+      </span>
+    </div>
+
+    <div class="viewfinder-frame">
+      <div class="viewfinder">
+        <zxing-scanner
+          [enable]="scannerEnabled"
+          (scanSuccess)="onScanSuccess($event)"
+          (camerasFound)="onCamerasFound($event)"
+          (permissionResponse)="onPermissionResponse($event)"
+        ></zxing-scanner>
+        <div class="camera-placeholder" *ngIf="!hasCameras || !scannerEnabled">
+          <div class="camera-placeholder-icon" aria-hidden="true">{{ hasCameras ? '✓' : '⌗' }}</div>
+          <strong>{{ scannerEnabled ? 'Starting your camera…' : 'Scan captured' }}</strong>
+          <span *ngIf="!hasCameras && !cameraPermissionDenied">Allow camera access to scan a barcode.</span>
+          <span *ngIf="cameraPermissionDenied">Camera access is blocked. Allow it in your browser settings.</span>
+          <span *ngIf="!scannerEnabled">Review the result below or scan another product.</span>
+        </div>
+        <div class="scanner-target" *ngIf="scannerEnabled && hasCameras" aria-hidden="true">
+          <span class="target-corner top-left"></span>
+          <span class="target-corner top-right"></span>
+          <span class="target-corner bottom-left"></span>
+          <span class="target-corner bottom-right"></span>
+          <span class="scan-line"></span>
+        </div>
+      </div>
+    </div>
+
+    <p *ngIf="productsLoading" class="loading-note">Loading inventory…</p>
+    <p *ngIf="productsError" class="feedback-message error" role="alert">{{ productsError }}</p>
+
+    <form class="manual-entry" (ngSubmit)="scanManualBarcode()">
+      <label for="manual-barcode">Enter barcode manually</label>
+      <div class="manual-entry-controls">
+        <input
+          id="manual-barcode"
+          type="text"
+          name="manualBarcode"
+          [(ngModel)]="manualBarcode"
+          placeholder="Type or paste a barcode"
+          autocomplete="off"
+        />
+        <button type="submit" [disabled]="!manualBarcode.trim()">Inspect</button>
+      </div>
+    </form>
+
+    <section *ngIf="scannedBarcode" class="scan-status" aria-live="polite">
+      <div class="scanned-code">
+        <span>Scanned barcode</span>
+        <strong>{{ scannedBarcode }}</strong>
+      </div>
+
+      <article *ngIf="matchedProduct as product" class="product-result">
+        <div class="result-topline">
+          <div class="product-title">
+            <p class="result-label">Product found</p>
+            <h2>{{ product.name }}</h2>
+            <p>{{ product.brand || product.category || 'Inventory item' }}</p>
+          </div>
+          <span class="stock-badge" [class.stock-low]="isLowStock" [class.stock-good]="!isLowStock">
+            <span class="stock-indicator"></span>
+            {{ product.currentStock }} {{ product.unit || 'units' }}
+            <small>{{ isLowStock ? 'Low stock' : 'In stock' }}</small>
+          </span>
+        </div>
+
+        <div class="value-grid">
+          <div class="value-tile">
+            <span>Purchase price</span>
+            <strong>₹{{ product.purchasePrice | number:'1.2-2':'en-IN' }}</strong>
+            <small>Wholesale cost</small>
+          </div>
+          <div class="value-tile">
+            <span>MRP</span>
+            <strong>₹{{ product.mrp | number:'1.2-2':'en-IN' }}</strong>
+            <small>Maximum retail price</small>
+          </div>
+        </div>
+
+        <div class="shelf-value">
+          <div>
+            <span>Total shelf value</span>
+            <small>{{ product.currentStock }} × ₹{{ product.purchasePrice | number:'1.2-2':'en-IN' }}</small>
+          </div>
+          <strong>₹{{ shelfValue | number:'1.2-2':'en-IN' }}</strong>
+        </div>
+
+        <button type="button" class="scan-again-button" (click)="resumeScanning()">Scan another product</button>
+      </article>
+
+      <article *ngIf="!matchedProduct" class="not-found-result">
+        <div class="not-found-icon" aria-hidden="true">?</div>
+        <div class="not-found-copy">
+          <strong>Product not found</strong>
+          <span>This barcode is not linked to an item in your inventory.</span>
+        </div>
+        <button type="button" class="add-barcode-button" (click)="notifyAddBarcode()">
+          + Add New Barcode to Product
+        </button>
+        <p *ngIf="barcodeNotice" class="barcode-notice" role="status">{{ barcodeNotice }}</p>
+        <button type="button" class="scan-again-button" (click)="resumeScanning()">Scan another product</button>
+      </article>
+    </section>
+  </section>
+
+  <aside class="scan-tip">
+    <span class="tip-icon" aria-hidden="true">✦</span>
+    <p><strong>Scanning tip</strong> Use good lighting and hold the phone steady about 10–15 cm from the barcode.</p>
+  </aside>
+</main>

@@ -15,6 +15,7 @@ export interface Product {
   mrp: number;
   salePrice?: number;
   unit?: string;
+  barcode?: string;
   sku?: string;
   hsn?: string;
 }

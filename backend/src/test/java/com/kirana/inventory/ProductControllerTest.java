@@ -3,6 +3,7 @@ package com.kirana.inventory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kirana.inventory.model.Product;
 import com.kirana.inventory.model.User;
+import com.kirana.inventory.repository.ProductRepository;
 import com.kirana.inventory.security.JwtTokenProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,6 +37,9 @@ class ProductControllerTest {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     private String adminToken() {
         User admin = new User();
@@ -163,6 +168,40 @@ class ProductControllerTest {
         mockMvc.perform(delete("/api/products/{id}", created.getId())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken()))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldDeductFractionalStockExactly() throws Exception {
+        Product product = Product.builder()
+                .name("Loose Rice")
+                .brand("Local")
+                .category("Groceries")
+                .currentStock(new BigDecimal("49.375"))
+                .minStockAlert(new BigDecimal("2.000"))
+                .purchasePrice(new BigDecimal("40.00"))
+                .mrp(new BigDecimal("55.00"))
+                .isLooseItem(true)
+                .build();
+
+        MockHttpServletResponse createResponse = mockMvc.perform(post("/api/products")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(product)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse();
+
+        Product created = objectMapper.readValue(createResponse.getContentAsString(), Product.class);
+
+        mockMvc.perform(post("/api/checkout/stock-deductions")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"items\":[{\"productId\":" + created.getId() + ",\"quantity\":0.625}]}"))
+                .andExpect(status().isNoContent());
+
+        Product updated = productRepository.findById(created.getId()).orElseThrow();
+        assertEquals(0, new BigDecimal("48.750").compareTo(updated.getCurrentStock()));
+        assertEquals(Boolean.TRUE, updated.getIsLooseItem());
     }
 
     @Test

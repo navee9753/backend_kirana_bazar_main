@@ -168,9 +168,10 @@ export class SuppliersPageComponent implements OnInit, OnDestroy {
     const quantityPurchased = Number(this.purchaseForm.quantityPurchased);
     const purchaseRate = Number(this.purchaseForm.purchaseRate);
 
-    if (!supplierId || !productId || !Number.isSafeInteger(quantityPurchased) || quantityPurchased <= 0 ||
+    if (!supplierId || !productId || !Number.isFinite(quantityPurchased) || quantityPurchased <= 0 ||
+      Math.round(quantityPurchased * 1000) !== quantityPurchased * 1000 ||
       !Number.isFinite(purchaseRate) || purchaseRate < 0) {
-      this.purchaseError = 'Choose a product and enter a positive whole quantity and valid buying rate.';
+      this.purchaseError = 'Choose a product and enter a positive quantity (up to 3 decimal places) and valid buying rate.';
       return;
     }
 

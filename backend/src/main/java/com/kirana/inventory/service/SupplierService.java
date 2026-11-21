@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -69,18 +70,16 @@ public class SupplierService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Supplier not found"));
 
         BigDecimal totalAmount = request.purchaseRate()
-                .multiply(BigDecimal.valueOf(request.quantityPurchased()))
-                .setScale(2);
+                .multiply(request.quantityPurchased())
+                .setScale(2, RoundingMode.HALF_UP);
         if (totalAmount.precision() - totalAmount.scale() > 12) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Total amount exceeds NUMERIC(14,2)");
         }
 
-        int currentStock = product.getCurrentStock() == null ? 0 : product.getCurrentStock();
-        final int updatedStock;
-        try {
-            updatedStock = Math.addExact(currentStock, request.quantityPurchased());
-        } catch (ArithmeticException exception) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Updated product stock exceeds the supported range", exception);
+        BigDecimal currentStock = product.getCurrentStock() == null ? BigDecimal.ZERO : product.getCurrentStock();
+        BigDecimal updatedStock = currentStock.add(request.quantityPurchased());
+        if (updatedStock.precision() - updatedStock.scale() > 9 || updatedStock.scale() > 3) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Updated product stock exceeds NUMERIC(12,3)");
         }
         BigDecimal updatedPendingPayable = (supplier.getPendingPayable() == null
                 ? BigDecimal.ZERO

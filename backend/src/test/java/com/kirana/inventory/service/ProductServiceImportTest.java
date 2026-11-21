@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.nio.charset.StandardCharsets;
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,9 +30,9 @@ class ProductServiceImportTest {
                 "file",
                 "products.csv",
                 "text/csv",
-                ("name,brand,category,current_stock,min_stock_alert,purchase_price,mrp\r\n"
-                        + "Rice,Hulchul,Groceries,48,12,1900.00,2200.00\r\n"
-                        + "Tea,Good Brand,Snacks,20,5,120.50,160.00\r\n")
+                ("name,brand,category,current_stock,min_stock_alert,purchase_price,mrp,is_loose_item\r\n"
+                        + "Rice,Hulchul,Groceries,49.375,2.500,1900.00,2200.00,true\r\n"
+                        + "Tea,Good Brand,Snacks,20,5,120.50,160.00,false\r\n")
                         .getBytes(StandardCharsets.UTF_8)
         );
 
@@ -43,6 +44,8 @@ class ProductServiceImportTest {
         List<Product> products = productCaptor.getAllValues();
         assertEquals("Rice", products.get(0).getName());
         assertEquals("Tea", products.get(1).getName());
-        assertEquals(5, products.get(1).getMinStockAlert());
+        assertEquals(0, new BigDecimal("5.000").compareTo(products.get(1).getMinStockAlert()));
+        assertEquals(0, new BigDecimal("49.375").compareTo(products.get(0).getCurrentStock()));
+        assertEquals(Boolean.TRUE, products.get(0).getIsLooseItem());
     }
 }

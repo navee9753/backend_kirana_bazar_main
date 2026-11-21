@@ -2,6 +2,7 @@ package com.kirana.inventory.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
@@ -35,12 +36,17 @@ public class Product {
     private String category;
 
     @PositiveOrZero(message = "Current stock cannot be negative")
-    @Column(name = "current_stock")
-    private Integer currentStock;
+    @Digits(integer = 9, fraction = 3, message = "Current stock must fit NUMERIC(12,3)")
+    @Column(name = "current_stock", precision = 12, scale = 3)
+    private BigDecimal currentStock;
 
     @PositiveOrZero(message = "Minimum stock alert cannot be negative")
-    @Column(name = "min_stock_alert")
-    private Integer minStockAlert;
+    @Digits(integer = 9, fraction = 3, message = "Minimum stock alert must fit NUMERIC(12,3)")
+    @Column(name = "min_stock_alert", precision = 12, scale = 3)
+    private BigDecimal minStockAlert;
+
+    @Column(name = "is_loose_item", nullable = false)
+    private Boolean isLooseItem = false;
 
     @DecimalMin(value = "0.0", inclusive = true, message = "Purchase price cannot be negative")
     @Column(name = "purchase_price", nullable = false)
@@ -77,13 +83,26 @@ public class Product {
             return this;
         }
 
-        public Builder currentStock(Integer currentStock) {
+        public Builder currentStock(BigDecimal currentStock) {
             product.setCurrentStock(currentStock);
             return this;
         }
 
-        public Builder minStockAlert(Integer minStockAlert) {
+        public Builder currentStock(int currentStock) {
+            return currentStock(BigDecimal.valueOf(currentStock));
+        }
+
+        public Builder minStockAlert(BigDecimal minStockAlert) {
             product.setMinStockAlert(minStockAlert);
+            return this;
+        }
+
+        public Builder minStockAlert(int minStockAlert) {
+            return minStockAlert(BigDecimal.valueOf(minStockAlert));
+        }
+
+        public Builder isLooseItem(Boolean isLooseItem) {
+            product.setIsLooseItem(isLooseItem);
             return this;
         }
 
@@ -134,20 +153,28 @@ public class Product {
         this.category = category;
     }
 
-    public Integer getCurrentStock() {
+    public BigDecimal getCurrentStock() {
         return currentStock;
     }
 
-    public void setCurrentStock(Integer currentStock) {
+    public void setCurrentStock(BigDecimal currentStock) {
         this.currentStock = currentStock;
     }
 
-    public Integer getMinStockAlert() {
+    public BigDecimal getMinStockAlert() {
         return minStockAlert;
     }
 
-    public void setMinStockAlert(Integer minStockAlert) {
+    public void setMinStockAlert(BigDecimal minStockAlert) {
         this.minStockAlert = minStockAlert;
+    }
+
+    public Boolean getIsLooseItem() {
+        return isLooseItem;
+    }
+
+    public void setIsLooseItem(Boolean isLooseItem) {
+        this.isLooseItem = isLooseItem;
     }
 
     public BigDecimal getPurchasePrice() {

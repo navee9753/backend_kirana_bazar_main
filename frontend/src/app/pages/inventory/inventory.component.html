@@ -48,12 +48,17 @@
 
         <label>
           <span>Current stock</span>
-          <input type="number" name="currentStock" [(ngModel)]="form.currentStock" min="0" step="1">
+          <input type="number" name="currentStock" [(ngModel)]="form.currentStock" min="0" step="0.001">
         </label>
 
         <label>
           <span>Min stock</span>
-          <input type="number" name="minStockAlert" [(ngModel)]="form.minStockAlert" min="0" step="1">
+          <input type="number" name="minStockAlert" [(ngModel)]="form.minStockAlert" min="0" step="0.001">
+        </label>
+
+        <label class="loose-item-toggle">
+          <input type="checkbox" name="isLooseItem" [(ngModel)]="form.isLooseItem">
+          <span>Sold Loose by Weight (Kg)</span>
         </label>
 
         <label>
@@ -98,10 +103,10 @@
             <td>{{ item.brand || '-' }}</td>
             <td>
               <span class="stock-pill" [class.low]="item.stock <= item.min">
-                {{ item.stock }}
+                {{ item.stock }}{{ item.isLooseItem ? ' Kg' : '' }}
               </span>
             </td>
-            <td>{{ item.min }}</td>
+            <td>{{ item.min }}{{ item.isLooseItem ? ' Kg' : '' }}</td>
             <td>₹{{ item.purchase }}</td>
             <td>₹{{ item.mrp }}</td>
             <td>

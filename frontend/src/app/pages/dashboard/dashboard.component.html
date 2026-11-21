@@ -49,13 +49,13 @@
         <article class="stock-item" *ngFor="let product of lowStockProducts">
           <div class="stock-item-heading">
             <strong>{{ product.name }}</strong>
-            <span class="stock-badge">{{ product.currentStock }} {{ product.unit || 'units' }}</span>
+            <span class="stock-badge">{{ product.currentStock }} {{ product.isLooseItem ? 'Kg' : (product.unit || 'units') }}</span>
           </div>
           <p>{{ product.brand || product.category }}</p>
           <div class="stock-meter" aria-hidden="true">
             <span [style.width.%]="product.minStockAlert > 0 ? (product.currentStock / product.minStockAlert) * 100 : 0"></span>
           </div>
-          <small>Restock threshold: {{ product.minStockAlert }} {{ product.unit || 'units' }}</small>
+          <small>Restock threshold: {{ product.minStockAlert }} {{ product.isLooseItem ? 'Kg' : (product.unit || 'units') }}</small>
         </article>
       </div>
       <ng-template #noLowStock>

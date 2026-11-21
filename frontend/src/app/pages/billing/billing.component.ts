@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin, of, Subscription } from 'rxjs';
+import { of, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 import { InventoryService, Khata, Product } from '../../services/inventory.service';
@@ -13,6 +13,7 @@ interface CartLine {
   product: Product;
   quantity: number;
   unitPrice: number;
+  subtotal?: number;
 }
 
 @Component({
@@ -28,6 +29,13 @@ export class BillingPageComponent implements OnInit, OnDestroy {
   cart: CartLine[] = [];
   searchTerm = '';
   selectedCategory: ProductCategory | 'All' = 'All';
+  looseOnly = false;
+  calculatorProduct: Product | null = null;
+  calculatorMode: 'weight' | 'amount' = 'weight';
+  calculatorWeightUnit: 'g' | 'kg' = 'g';
+  calculatorWeightInput = 500;
+  calculatorAmountInput = 0;
+  calculatorError = '';
   customDiscount = 0;
   cashReceived: number | null = null;
   customerName = '';
@@ -66,12 +74,51 @@ export class BillingPageComponent implements OnInit, OnDestroy {
         || (product.brand ?? '').toLocaleLowerCase().includes(query);
       const matchesCategory = this.selectedCategory === 'All'
         || this.categoryFor(product) === this.selectedCategory;
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesCategory && (!this.looseOnly || product.isLooseItem === true);
     });
   }
 
   get grossTotal(): number {
-    return this.cart.reduce((total, line) => total + line.quantity * line.unitPrice, 0);
+    return this.cart.reduce((total, line) => total + this.lineTotal(line), 0);
+  }
+
+  get calculatorQuantityKg(): number {
+    if (!this.calculatorProduct) {
+      return 0;
+    }
+    if (this.calculatorMode === 'amount') {
+      const mrp = Number(this.calculatorProduct.mrp);
+      return mrp > 0 ? this.roundQuantity(Number(this.calculatorAmountInput) / mrp) : 0;
+    }
+    const enteredWeight = Number(this.calculatorWeightInput);
+    return this.roundQuantity(this.calculatorWeightUnit === 'g' ? enteredWeight / 1000 : enteredWeight);
+  }
+
+  get calculatorCharge(): number {
+    if (!this.calculatorProduct) {
+      return 0;
+    }
+    if (this.calculatorMode === 'amount') {
+      return this.roundCurrency(Number(this.calculatorAmountInput));
+    }
+    return this.roundCurrency(this.calculatorQuantityKg * Number(this.calculatorProduct.mrp));
+  }
+
+  get calculatorRemainingStock(): number {
+    if (!this.calculatorProduct) {
+      return 0;
+    }
+    const alreadyInCart = this.cart.find((line) => line.product.id === this.calculatorProduct?.id)?.quantity ?? 0;
+    return Math.max(0, Number(this.calculatorProduct.currentStock ?? 0) - alreadyInCart);
+  }
+
+  get calculatorCanAdd(): boolean {
+    return !!this.calculatorProduct
+      && this.calculatorQuantityKg > 0
+      && this.calculatorQuantityKg <= this.calculatorRemainingStock
+      && Number.isFinite(this.calculatorCharge)
+      && this.calculatorCharge >= 0
+      && (this.calculatorMode !== 'amount' || Number(this.calculatorProduct.mrp) > 0);
   }
 
   get validDiscount(): number {
@@ -110,6 +157,106 @@ export class BillingPageComponent implements OnInit, OnDestroy {
         unitPrice: Number(product.salePrice ?? product.mrp ?? 0)
       }];
     }
+  }
+
+  selectProduct(product: Product): void {
+    if (product.isLooseItem) {
+      this.calculatorProduct = product;
+      this.calculatorMode = 'weight';
+      this.calculatorWeightUnit = 'g';
+      this.calculatorWeightInput = 500;
+      this.calculatorAmountInput = 0;
+      this.calculatorError = '';
+      this.settlementError = '';
+      return;
+    }
+    this.addToCart(product);
+  }
+
+  setCalculatorMode(mode: 'weight' | 'amount'): void {
+    if (mode === this.calculatorMode || !this.calculatorProduct) {
+      return;
+    }
+    if (mode === 'amount') {
+      this.calculatorAmountInput = this.roundCurrency(
+        this.calculatorQuantityKg * Number(this.calculatorProduct.mrp)
+      );
+    } else {
+      this.calculatorWeightUnit = 'kg';
+      this.calculatorWeightInput = this.calculatorQuantityKg;
+    }
+    this.calculatorMode = mode;
+    this.calculatorError = '';
+  }
+
+  setWeightPreset(grams: number): void {
+    this.calculatorMode = 'weight';
+    this.calculatorWeightUnit = 'g';
+    this.calculatorWeightInput = grams;
+    this.calculatorError = '';
+  }
+
+  setCalculatorWeightUnit(unit: 'g' | 'kg'): void {
+    if (unit === this.calculatorWeightUnit) {
+      return;
+    }
+    const weightKg = this.calculatorWeightUnit === 'g'
+      ? Number(this.calculatorWeightInput) / 1000
+      : Number(this.calculatorWeightInput);
+    this.calculatorWeightUnit = unit;
+    this.calculatorWeightInput = unit === 'g' ? weightKg * 1000 : weightKg;
+    this.calculatorError = '';
+  }
+
+  addLooseItemToCart(): void {
+    const product = this.calculatorProduct;
+    if (!product) {
+      return;
+    }
+    if (!this.calculatorCanAdd) {
+      this.calculatorError = this.calculatorQuantityKg > this.calculatorRemainingStock
+        ? `Only ${this.formatQuantity(this.calculatorRemainingStock)} Kg of ${product.name} is available.`
+        : 'Enter a valid weight or rupee amount.';
+      return;
+    }
+
+    const quantity = this.calculatorQuantityKg;
+    const subtotal = this.calculatorCharge;
+    const existing = this.cart.find((line) => line.product.id === product.id);
+    if (existing) {
+      existing.quantity = this.roundQuantity(existing.quantity + quantity);
+      existing.subtotal = this.roundCurrency(this.lineTotal(existing) + subtotal);
+    } else {
+      this.cart = [...this.cart, {
+        product,
+        quantity,
+        unitPrice: Number(product.mrp),
+        subtotal
+      }];
+    }
+    this.closeCalculator();
+  }
+
+  closeCalculator(): void {
+    this.calculatorProduct = null;
+    this.calculatorError = '';
+  }
+
+  removeFromCart(line: CartLine): void {
+    this.cart = this.cart.filter((item) => item !== line);
+  }
+
+  lineTotal(line: CartLine): number {
+    return line.subtotal ?? this.roundCurrency(line.quantity * line.unitPrice);
+  }
+
+  formatWeight(quantityKg: number): string {
+    const grams = Math.round(quantityKg * 1000);
+    return `${this.formatQuantity(quantityKg)} Kg (${grams}g)`;
+  }
+
+  formatQuantity(quantity: number): string {
+    return Number(quantity).toFixed(3).replace(/\.?0+$/, '');
   }
 
   changeQuantity(line: CartLine, change: number): void {
@@ -173,15 +320,11 @@ export class BillingPageComponent implements OnInit, OnDestroy {
     const purchasedLines = this.cart.map((line) => ({ ...line }));
     const methodLabel = method;
     this.settling = true;
-    const stockUpdates = purchasedLines.map((line) => {
-      const product = line.product;
-      return this.inventoryService.updateProduct(product.id!, {
-        ...product,
-        currentStock: Number(product.currentStock) - line.quantity
-      });
-    });
-
-    const settlement$ = forkJoin(stockUpdates).pipe(
+    const stockDeductions = purchasedLines.map((line) => ({
+      productId: line.product.id!,
+      quantity: line.quantity
+    }));
+    const settlement$ = this.inventoryService.deductStockBatch(stockDeductions).pipe(
       switchMap(() => {
         if (method !== 'Udhar Khata') {
           return of(null);
@@ -202,7 +345,7 @@ export class BillingPageComponent implements OnInit, OnDestroy {
         this.products = this.products.map((product) => {
           const purchased = purchasedLines.find((line) => line.product.id === product.id);
           return purchased
-            ? { ...product, currentStock: Number(product.currentStock) - purchased.quantity }
+            ? { ...product, currentStock: this.roundQuantity(Number(product.currentStock) - purchased.quantity) }
             : product;
         });
         this.cart = [];
@@ -251,8 +394,8 @@ export class BillingPageComponent implements OnInit, OnDestroy {
   private buildReceipt(lines: CartLine[], method: PaymentMethod): string {
     const rows = lines.map((line) => `
       <tr>
-        <td>${this.escapeHtml(line.product.name)} × ${line.quantity}</td>
-        <td>${this.formatCurrency(line.quantity * line.unitPrice)}</td>
+        <td>${this.escapeHtml(line.product.name)} × ${line.product.isLooseItem ? this.formatWeight(line.quantity) : line.quantity}</td>
+        <td>${this.formatCurrency(this.lineTotal(line))}</td>
       </tr>
     `).join('');
     const change = method === 'Cash' ? this.changeDue : 0;
@@ -305,5 +448,13 @@ export class BillingPageComponent implements OnInit, OnDestroy {
       '"': '&quot;',
       "'": '&#39;'
     })[character] ?? character);
+  }
+
+  private roundQuantity(value: number): number {
+    return Math.round((value + Number.EPSILON) * 1000) / 1000;
+  }
+
+  private roundCurrency(value: number): number {
+    return Math.round((value + Number.EPSILON) * 100) / 100;
   }
 }

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.6-decimal-stock-and-loose-items" author="copilot">
+        <modifyDataType tableName="products" columnName="current_stock" newDataType="NUMERIC(12,3)"/>
+        <modifyDataType tableName="products" columnName="min_stock_alert" newDataType="NUMERIC(12,3)"/>
+        <addColumn tableName="products">
+            <column name="is_loose_item" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <modifyDataType tableName="supplier_purchases" columnName="quantity_purchased" newDataType="NUMERIC(12,3)"/>
+    </changeSet>
+</databaseChangeLog>

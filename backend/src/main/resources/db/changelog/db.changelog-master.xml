@@ -11,5 +11,6 @@
     <include file="classpath:/db/changelog/v1.3-supplier-fields.xml"/>
     <include file="classpath:/db/changelog/v1.4-supplier-legacy-address.xml"/>
     <include file="classpath:/db/changelog/v1.5-supplier-purchases.xml"/>
+    <include file="classpath:/db/changelog/v1.6-loose-items-and-decimal-stock.xml"/>
 
 </databaseChangeLog>

@@ -78,7 +78,7 @@
           </div>
           <span class="stock-badge" [class.stock-low]="isLowStock" [class.stock-good]="!isLowStock">
             <span class="stock-indicator"></span>
-            {{ product.currentStock }} {{ product.unit || 'units' }}
+            {{ product.currentStock }} {{ product.isLooseItem ? 'Kg' : (product.unit || 'units') }}
             <small>{{ isLowStock ? 'Low stock' : 'In stock' }}</small>
           </span>
         </div>
@@ -99,7 +99,7 @@
         <div class="shelf-value">
           <div>
             <span>Total shelf value</span>
-            <small>{{ product.currentStock }} × ₹{{ product.purchasePrice | number:'1.2-2':'en-IN' }}</small>
+            <small>{{ product.currentStock }} {{ product.isLooseItem ? 'Kg' : '' }} × ₹{{ product.purchasePrice | number:'1.2-2':'en-IN' }}</small>
           </div>
           <strong>₹{{ shelfValue | number:'1.2-2':'en-IN' }}</strong>
         </div>

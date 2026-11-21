@@ -30,8 +30,8 @@ public class SupplierPurchase {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(name = "quantity_purchased", nullable = false)
-    private int quantityPurchased;
+    @Column(name = "quantity_purchased", nullable = false, precision = 12, scale = 3)
+    private BigDecimal quantityPurchased;
 
     @Column(name = "purchase_rate", nullable = false, precision = 10, scale = 2)
     private BigDecimal purchaseRate;
@@ -73,11 +73,11 @@ public class SupplierPurchase {
         this.product = product;
     }
 
-    public int getQuantityPurchased() {
+    public BigDecimal getQuantityPurchased() {
         return quantityPurchased;
     }
 
-    public void setQuantityPurchased(int quantityPurchased) {
+    public void setQuantityPurchased(BigDecimal quantityPurchased) {
         this.quantityPurchased = quantityPurchased;
     }
 

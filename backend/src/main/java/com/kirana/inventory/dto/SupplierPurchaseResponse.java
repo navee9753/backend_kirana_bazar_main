@@ -7,7 +7,7 @@ public record SupplierPurchaseResponse(
         Long id,
         Long supplierId,
         Long productId,
-        int quantityPurchased,
+        BigDecimal quantityPurchased,
         BigDecimal purchaseRate,
         BigDecimal totalAmount,
         LocalDateTime purchaseDate

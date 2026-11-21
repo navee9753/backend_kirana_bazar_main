@@ -2,6 +2,7 @@ package com.kirana.inventory.controller;
 
 import com.kirana.inventory.dto.DashboardSummary;
 import com.kirana.inventory.dto.BulkImportResponse;
+import com.kirana.inventory.dto.StockDeductionBatchRequest;
 import com.kirana.inventory.model.Product;
 import com.kirana.inventory.service.ProductService;
 import jakarta.validation.Valid;
@@ -58,6 +59,12 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
         Product updatedProduct = productService.updateProduct(id, product);
         return ResponseEntity.ok(updatedProduct);
+    }
+
+    @PostMapping("/checkout/stock-deductions")
+    public ResponseEntity<Void> deductCheckoutStock(@Valid @RequestBody StockDeductionBatchRequest request) {
+        productService.deductStocks(request.items());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/products/{id}")

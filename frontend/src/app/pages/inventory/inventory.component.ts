@@ -15,6 +15,7 @@ interface ProductRow {
   purchase: number;
   mrp: number;
   category: string;
+  isLooseItem: boolean;
 }
 
 @Component({
@@ -41,7 +42,8 @@ export class InventoryPageComponent implements OnInit {
     currentStock: 0,
     minStockAlert: 0,
     purchasePrice: 0,
-    mrp: 0
+    mrp: 0,
+    isLooseItem: false
   };
 
   constructor(private readonly inventoryService: InventoryService) {}
@@ -61,7 +63,8 @@ export class InventoryPageComponent implements OnInit {
           stock: Number(product.currentStock ?? 0),
           min: Number(product.minStockAlert ?? 0),
           purchase: Number(product.purchasePrice ?? 0),
-          mrp: Number(product.mrp ?? 0)
+          mrp: Number(product.mrp ?? 0),
+          isLooseItem: product.isLooseItem ?? false
         }));
       },
       error: () => {
@@ -79,7 +82,8 @@ export class InventoryPageComponent implements OnInit {
       currentStock: 0,
       minStockAlert: 0,
       purchasePrice: 0,
-      mrp: 0
+      mrp: 0,
+      isLooseItem: false
     };
     this.formError = '';
     this.showForm = true;
@@ -94,7 +98,8 @@ export class InventoryPageComponent implements OnInit {
       currentStock: item.stock,
       minStockAlert: item.min,
       purchasePrice: item.purchase,
-      mrp: item.mrp
+      mrp: item.mrp,
+      isLooseItem: item.isLooseItem
     };
     this.formError = '';
     this.showForm = true;
@@ -114,7 +119,8 @@ export class InventoryPageComponent implements OnInit {
       currentStock: Number(this.form.currentStock ?? 0),
       minStockAlert: Number(this.form.minStockAlert ?? 0),
       purchasePrice: Number(this.form.purchasePrice ?? 0),
-      mrp: Number(this.form.mrp ?? 0)
+      mrp: Number(this.form.mrp ?? 0),
+      isLooseItem: this.form.isLooseItem
     };
 
     if (!payload.name) {
@@ -192,8 +198,8 @@ export class InventoryPageComponent implements OnInit {
 
   downloadImportTemplate(): void {
     const csv = [
-      'name,brand,category,current_stock,min_stock_alert,purchase_price,mrp',
-      'Rice Bag,Hulchul,Groceries,48,12,1900.00,2200.00'
+      'name,brand,category,current_stock,min_stock_alert,purchase_price,mrp,is_loose_item',
+      'Rice Bag,Hulchul,Groceries,48.000,12.000,1900.00,2200.00,false'
     ].join('\r\n');
     const file = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(file);

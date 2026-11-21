@@ -60,12 +60,17 @@
 
         <label>
           <span>Opening stock</span>
-          <input type="number" [(ngModel)]="model.currentStock" name="currentStock" min="0" step="1" />
+          <input type="number" [(ngModel)]="model.currentStock" name="currentStock" min="0" step="0.001" />
         </label>
 
         <label>
           <span>Minimum alert</span>
-          <input type="number" [(ngModel)]="model.minStockAlert" name="minStockAlert" min="0" step="1" />
+          <input type="number" [(ngModel)]="model.minStockAlert" name="minStockAlert" min="0" step="0.001" />
+        </label>
+
+        <label class="loose-item-toggle">
+          <input type="checkbox" [(ngModel)]="model.isLooseItem" name="isLooseItem" />
+          <span>Sold Loose by Weight (Kg)</span>
         </label>
 
         <div class="inline-stat">

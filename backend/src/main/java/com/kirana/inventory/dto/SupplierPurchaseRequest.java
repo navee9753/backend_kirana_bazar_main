@@ -12,8 +12,10 @@ public record SupplierPurchaseRequest(
         @Positive(message = "Product ID must be positive")
         Long productId,
 
+        @NotNull(message = "Quantity purchased is required")
         @Positive(message = "Quantity purchased must be positive")
-        int quantityPurchased,
+        @Digits(integer = 9, fraction = 3, message = "Quantity purchased must fit NUMERIC(12,3)")
+        BigDecimal quantityPurchased,
 
         @NotNull(message = "Purchase rate is required")
         @DecimalMin(value = "0.00", message = "Purchase rate cannot be negative")

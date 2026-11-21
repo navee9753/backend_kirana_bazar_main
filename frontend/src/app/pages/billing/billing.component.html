@@ -29,13 +29,20 @@
             aria-label="Search products by name or brand"
           />
         </label>
+        <button
+          type="button"
+          class="category-chip loose-filter-chip"
+          [class.selected]="looseOnly"
+          [attr.aria-pressed]="looseOnly"
+          (click)="looseOnly = !looseOnly; selectedCategory = 'All'"
+        >⚖️ Loose Staples</button>
         <div class="category-chips" aria-label="Filter products by category">
           <button
             type="button"
             class="category-chip"
-            [class.selected]="selectedCategory === 'All'"
-            [attr.aria-pressed]="selectedCategory === 'All'"
-            (click)="selectedCategory = 'All'"
+            [class.selected]="selectedCategory === 'All' && !looseOnly"
+            [attr.aria-pressed]="selectedCategory === 'All' && !looseOnly"
+            (click)="selectedCategory = 'All'; looseOnly = false"
           >All</button>
           <button
             *ngFor="let category of categories"
@@ -43,7 +50,7 @@
             class="category-chip"
             [class.selected]="selectedCategory === category"
             [attr.aria-pressed]="selectedCategory === category"
-            (click)="selectedCategory = category"
+            (click)="selectedCategory = category; looseOnly = false"
           >{{ category }}</button>
         </div>
       </div>
@@ -56,7 +63,7 @@
           type="button"
           class="product-card"
           [disabled]="product.currentStock <= 0 || settling"
-          (click)="addToCart(product)"
+          (click)="selectProduct(product)"
         >
           <span class="product-category">{{ product.category || 'Product' }}</span>
           <strong class="product-name">{{ product.name }}</strong>
@@ -66,7 +73,7 @@
             Sale {{ formatCurrency(product.salePrice) }}
           </span>
           <span class="product-stock" [class.out-of-stock]="product.currentStock <= 0">
-            {{ product.currentStock <= 0 ? 'Out of stock' : product.currentStock + ' ' + (product.unit || 'in stock') }}
+            {{ product.currentStock <= 0 ? 'Out of stock' : (product.isLooseItem ? formatWeight(product.currentStock) : product.currentStock + ' ' + (product.unit || 'in stock')) }}
           </span>
           <span class="add-product" aria-hidden="true">+</span>
         </button>
@@ -102,10 +109,21 @@
                   <strong>{{ line.product.name }}</strong>
                   <small>{{ line.product.brand }}</small>
                 </td>
-                <td>{{ formatCurrency(line.unitPrice) }}</td>
+                <td>{{ formatCurrency(line.unitPrice) }}<small *ngIf="line.product.isLooseItem">/Kg</small></td>
                 <td>
+                <div *ngIf="line.product.isLooseItem; else unitQuantity" class="loose-quantity">
+                  {{ formatWeight(line.quantity) }}
+                  <button
+                    type="button"
+                    class="remove-line"
+                    [attr.aria-label]="'Remove ' + line.product.name + ' from bill'"
+                    [disabled]="settling"
+                    (click)="removeFromCart(line)"
+                  >×</button>
+                </div>
+                <ng-template #unitQuantity>
                   <div class="quantity-control" [attr.aria-label]="'Quantity for ' + line.product.name">
-                    <button
+                  <button
                       type="button"
                       [attr.aria-label]="'Decrease ' + line.product.name + ' quantity'"
                       [disabled]="settling"
@@ -118,9 +136,10 @@
                       [disabled]="settling"
                       (click)="changeQuantity(line, 1)"
                     >+</button>
-                  </div>
+                    </div>
+                  </ng-template>
                 </td>
-                <td class="amount-column">{{ formatCurrency(line.quantity * line.unitPrice) }}</td>
+                <td class="amount-column">{{ formatCurrency(lineTotal(line)) }}</td>
               </tr>
             </tbody>
           </table>
@@ -153,6 +172,116 @@
           <div class="total-line net-total">
             <span>Net payable</span>
             <strong>{{ formatCurrency(netPayable) }}</strong>
+          </div>
+
+          <div
+            *ngIf="calculatorProduct as looseProduct"
+            class="calculator-backdrop"
+            role="presentation"
+            (click)="closeCalculator()"
+          >
+            <section
+              class="loose-calculator"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="looseCalculatorTitle"
+              (click)="$event.stopPropagation()"
+              (keydown.escape)="closeCalculator()"
+            >
+              <header class="calculator-heading">
+                <div>
+                  <p class="eyebrow">Weight-to-price calculator</p>
+                  <h2 id="looseCalculatorTitle">
+                    Loose Item Calculator: {{ looseProduct.name }} ({{ formatCurrency(looseProduct.mrp) }}/Kg)
+                  </h2>
+                </div>
+                <button type="button" class="calculator-close" aria-label="Close calculator" (click)="closeCalculator()">×</button>
+              </header>
+
+              <div class="calculator-modes" role="tablist" aria-label="Choose calculator input">
+                <button
+                  type="button"
+                  role="tab"
+                  [attr.aria-selected]="calculatorMode === 'weight'"
+                  [class.active]="calculatorMode === 'weight'"
+                  (click)="setCalculatorMode('weight')"
+                >Enter Weight</button>
+                <button
+                  type="button"
+                  role="tab"
+                  [attr.aria-selected]="calculatorMode === 'amount'"
+                  [class.active]="calculatorMode === 'amount'"
+                  (click)="setCalculatorMode('amount')"
+                >Enter Rupee Amount</button>
+              </div>
+
+              <div *ngIf="calculatorMode === 'weight'" class="calculator-input-panel">
+                <label for="calculatorWeight">Weight to sell</label>
+                <div class="calculator-weight-entry">
+                  <input
+                    id="calculatorWeight"
+                    type="number"
+                    name="calculatorWeight"
+                    min="0"
+                    [step]="calculatorWeightUnit === 'g' ? 1 : 0.001"
+                    inputmode="decimal"
+                    [(ngModel)]="calculatorWeightInput"
+                    aria-label="Weight to sell"
+                  />
+                  <div class="weight-units" aria-label="Weight unit">
+                    <button type="button" [class.active]="calculatorWeightUnit === 'g'" [attr.aria-pressed]="calculatorWeightUnit === 'g'" (click)="setCalculatorWeightUnit('g')">g</button>
+                    <button type="button" [class.active]="calculatorWeightUnit === 'kg'" [attr.aria-pressed]="calculatorWeightUnit === 'kg'" (click)="setCalculatorWeightUnit('kg')">Kg</button>
+                  </div>
+                </div>
+                <div class="weight-presets" aria-label="Quick weight amounts">
+                  <button type="button" (click)="setWeightPreset(100)">100g</button>
+                  <button type="button" (click)="setWeightPreset(250)">250g</button>
+                  <button type="button" (click)="setWeightPreset(500)">500g</button>
+                  <button type="button" (click)="setWeightPreset(1000)">1 Kg</button>
+                </div>
+                <p class="calculator-result">
+                  Price to charge <strong>{{ formatCurrency(calculatorCharge) }}</strong>
+                </p>
+              </div>
+
+              <div *ngIf="calculatorMode === 'amount'" class="calculator-input-panel">
+                <label for="calculatorAmount">Customer's amount</label>
+                <div class="calculator-amount-entry">
+                  <span aria-hidden="true">₹</span>
+                  <input
+                    id="calculatorAmount"
+                    type="number"
+                    name="calculatorAmount"
+                    min="0"
+                    step="0.01"
+                    inputmode="decimal"
+                    [(ngModel)]="calculatorAmountInput"
+                    aria-label="Amount in rupees"
+                  />
+                </div>
+                <p class="calculator-result">
+                  Exact weight to weigh
+                  <strong>{{ formatWeight(calculatorQuantityKg) }}</strong>
+                </p>
+              </div>
+
+              <p class="calculator-availability">
+                Available: {{ formatWeight(calculatorRemainingStock) }}
+              </p>
+              <p *ngIf="calculatorQuantityKg > calculatorRemainingStock" class="field-error" role="alert">
+                The entered quantity exceeds available stock.
+              </p>
+              <p *ngIf="calculatorMode === 'amount' && looseProduct.mrp <= 0" class="field-error" role="alert">
+                Enter a positive MRP per Kg before calculating by rupee amount.
+              </p>
+              <p *ngIf="calculatorError" class="field-error" role="alert">{{ calculatorError }}</p>
+              <footer class="calculator-actions">
+                <button type="button" class="secondary-button" (click)="closeCalculator()">Cancel</button>
+                <button type="button" class="primary-button" [disabled]="!calculatorCanAdd" (click)="addLooseItemToCart()">
+                  Add to Bill · {{ formatCurrency(calculatorCharge) }}
+                </button>
+              </footer>
+            </section>
           </div>
         </section>
 

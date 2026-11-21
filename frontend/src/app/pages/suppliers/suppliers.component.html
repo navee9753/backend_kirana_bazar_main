@@ -147,7 +147,7 @@
           <strong>{{ product.name }}</strong>
           <span>{{ product.brand || product.category || 'Product' }}</span>
         </div>
-        <span class="stock-count">{{ product.currentStock }} <small>in stock</small></span>
+        <span class="stock-count">{{ product.currentStock }} <small>{{ product.isLooseItem ? 'Kg in stock' : 'in stock' }}</small></span>
       </div>
     </div>
   </section>
@@ -250,7 +250,7 @@
 
       <div *ngIf="selectedProduct" class="selected-product-stock">
         <span>Current stock</span>
-        <strong>{{ selectedProduct.currentStock }} units</strong>
+        <strong>{{ selectedProduct.currentStock }} {{ selectedProduct.isLooseItem ? 'Kg' : 'units' }}</strong>
       </div>
 
       <div class="field-grid two-col">
@@ -260,8 +260,8 @@
             [(ngModel)]="purchaseForm.quantityPurchased"
             name="quantityPurchased"
             type="number"
-            min="1"
-            step="1"
+            min="0.001"
+            step="0.001"
             required
           />
         </label>

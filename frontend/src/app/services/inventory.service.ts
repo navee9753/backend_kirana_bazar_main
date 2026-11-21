@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface Product {
@@ -11,6 +11,7 @@ export interface Product {
   category: string;
   currentStock: number;
   minStockAlert: number;
+  isLooseItem?: boolean;
   purchasePrice: number;
   mrp: number;
   salePrice?: number;
@@ -269,6 +270,31 @@ export class InventoryService {
 
     return this.http.put<Product>(`${this.productUrl}/${id}`, product, { headers: this.authHeaders() }).pipe(
       catchError(() => of({ ...product, id }))
+    );
+  }
+
+  deductStockBatch(items: Array<{ productId: number; quantity: number }>): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiBaseUrl}/api/checkout/stock-deductions`,
+      { items },
+      { headers: this.authHeaders() }
+    ).pipe(
+      tap(() => {
+        const deductions = new Map<number, number>();
+        items.forEach((item) => deductions.set(item.productId, item.quantity));
+        const products = this.readLocalProducts().map((product) => {
+          const quantity = product.id == null ? undefined : deductions.get(product.id);
+          return quantity == null
+            ? product
+            : {
+              ...product,
+              currentStock: Math.round(
+                (Number(product.currentStock ?? 0) - quantity + Number.EPSILON) * 1000
+              ) / 1000
+            };
+        });
+        this.persistLocalProducts(products);
+      })
     );
   }
 

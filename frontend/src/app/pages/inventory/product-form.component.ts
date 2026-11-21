@@ -23,6 +23,7 @@ export class ProductFormPageComponent {
     costPrice: 0,
     mrp: 0,
     salePrice: 0,
+    isLooseItem: false,
     sku: '',
     hsn: ''
   };
@@ -55,6 +56,7 @@ export class ProductFormPageComponent {
       purchasePrice: Number(this.model.costPrice ?? 0),
       mrp: Number(this.model.mrp ?? 0),
       salePrice: Number(this.model.salePrice ?? this.model.mrp ?? 0),
+      isLooseItem: this.model.isLooseItem,
       unit: this.model.unit,
       sku: this.model.sku.trim(),
       hsn: this.model.hsn.trim()

@@ -27,6 +27,8 @@ interface ProductRow {
 })
 export class InventoryPageComponent implements OnInit {
   inventory: ProductRow[] = [];
+  searchInput = '';
+  searchTerm = '';
   showForm = false;
   saving = false;
   formError = '';
@@ -50,6 +52,23 @@ export class InventoryPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+  }
+
+  get filteredInventory(): ProductRow[] {
+    const query = this.searchTerm.trim().toLocaleLowerCase();
+    if (!query) {
+      return this.inventory;
+    }
+
+    return this.inventory.filter((item) =>
+      item.name.toLocaleLowerCase().includes(query)
+      || item.brand.toLocaleLowerCase().includes(query)
+      || item.category.toLocaleLowerCase().includes(query)
+    );
+  }
+
+  searchInventory(): void {
+    this.searchTerm = this.searchInput;
   }
 
   load(): void {

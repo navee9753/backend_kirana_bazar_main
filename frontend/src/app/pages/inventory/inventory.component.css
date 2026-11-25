@@ -118,6 +118,28 @@
   padding: 18px;
 }
 
+.inventory-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.inventory-search label {
+  flex: 0 0 auto;
+}
+
+.inventory-search input {
+  flex: 1;
+  min-width: 0;
+}
+
+.empty-results {
+  padding: 24px 12px;
+  color: var(--slate-500);
+  text-align: center;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -309,5 +331,10 @@ button:focus-visible {
   .page-actions {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .inventory-search {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

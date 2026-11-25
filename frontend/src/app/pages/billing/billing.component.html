@@ -340,7 +340,7 @@
           <button type="button" class="settlement-button cash-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="settle('Cash')">
             <span>💵</span> Cash Paid
           </button>
-          <button type="button" class="settlement-button upi-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="settle('UPI / Online')">
+          <button type="button" class="settlement-button upi-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="openUpiPaymentModal()">
             <span>📱</span> UPI / Online
           </button>
           <button type="button" class="settlement-button khata-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="settle('Udhar Khata')">
@@ -358,5 +358,57 @@
         </div>
       </ng-template>
     </aside>
+  </div>
+
+  <div
+    *ngIf="showUpiModal"
+    class="upi-modal-backdrop"
+    role="presentation"
+    (click)="showUpiModal = false"
+    (keydown.escape)="showUpiModal = false"
+  >
+    <section
+      class="upi-payment-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="upiModalTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="upi-modal-heading">
+        <h2 id="upiModalTitle">Scan &amp; Pay via UPI</h2>
+        <button
+          type="button"
+          class="calculator-close"
+          aria-label="Close UPI payment modal"
+          (click)="showUpiModal = false"
+        >×</button>
+      </header>
+
+      <div class="upi-payment-summary">
+        <p class="upi-shop-name">{{ shopName }}</p>
+        <p class="upi-payment-amount">₹{{ netPayable | number:'1.2-2' }}</p>
+        <p class="upi-payment-caption">Exact bill amount</p>
+      </div>
+
+      <div class="upi-qr-container">
+        <div class="upi-qr-frame">
+          <qrcode
+            [qrdata]="upiQrString"
+            [width]="220"
+            [errorCorrectionLevel]="'M'"
+            aria-label="UPI payment QR code"
+          ></qrcode>
+        </div>
+      </div>
+
+      <p class="upi-supported-apps">Works with GPay • PhonePe • Paytm • BHIM</p>
+      <p class="upi-manual-confirmation">Confirm only after verifying the payment was received.</p>
+      <button
+        type="button"
+        class="upi-confirm-button"
+        [disabled]="settling"
+        (click)="confirmUpiPayment()"
+      >✅ Payment Received &amp; Complete Bill</button>
+    </section>
   </div>
 </section>

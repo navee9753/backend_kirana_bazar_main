@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { QRCodeModule } from 'angularx-qrcode';
 import { of, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
@@ -19,14 +20,18 @@ interface CartLine {
 @Component({
   selector: 'app-billing-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, QRCodeModule],
   templateUrl: './billing.component.html',
   styleUrls: ['./billing.component.css']
 })
 export class BillingPageComponent implements OnInit, OnDestroy {
+  readonly shopUpiId = '9753583488@ybl';
+  readonly shopName = 'Naveen Kirana Bazar';
   readonly categories: ProductCategory[] = ['Staples', 'Snacks', 'Dairy', 'Personal Care'];
   products: Product[] = [];
   cart: CartLine[] = [];
+  showUpiModal = false;
+  upiQrString = '';
   searchTerm = '';
   selectedCategory: ProductCategory | 'All' = 'All';
   looseOnly = false;
@@ -283,6 +288,32 @@ export class BillingPageComponent implements OnInit, OnDestroy {
     this.customerName = '';
     this.customerPhone = '';
     this.settlementError = '';
+  }
+
+  openUpiPaymentModal(): void {
+    this.settlementError = '';
+    if (this.settling || this.cart.length === 0) {
+      return;
+    }
+    if (!this.discountIsValid) {
+      this.settlementError = 'Discount must be between zero and the gross total.';
+      return;
+    }
+    if (this.netPayable <= 0) {
+      this.settlementError = 'UPI payment amount must be greater than zero.';
+      return;
+    }
+
+    this.upiQrString = `upi://pay?pa=${this.shopUpiId}&pn=${encodeURIComponent(this.shopName)}&am=${this.netPayable.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Kirana Bill Payment')}`;
+    this.showUpiModal = true;
+  }
+
+  confirmUpiPayment(): void {
+    if (!this.upiQrString || this.settling) {
+      return;
+    }
+    this.showUpiModal = false;
+    this.settle('UPI / Online');
   }
 
   settle(method: PaymentMethod): void {

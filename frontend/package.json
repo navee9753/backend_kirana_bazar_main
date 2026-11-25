@@ -21,6 +21,7 @@
     "@zxing/browser": "^0.1.4",
     "@zxing/library": "^0.20.0",
     "@zxing/ngx-scanner": "^17.0.1",
+    "angularx-qrcode": "^17.0.1",
     "rxjs": "~7.6.0",
     "tslib": "^2.6.2",
     "zone.js": "~0.14.10"

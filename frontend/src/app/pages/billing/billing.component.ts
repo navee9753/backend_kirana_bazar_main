@@ -59,6 +59,7 @@ export class BillingPageComponent implements OnInit, OnDestroy {
   showKhataSelector = false;
   khataCustomersLoading = false;
   khataCustomerLoadError = '';
+  khataCheckoutNotice = '';
   loading = true;
   settling = false;
   loadError = '';
@@ -462,6 +463,7 @@ export class BillingPageComponent implements OnInit, OnDestroy {
 
   openKhataCheckout(): void {
     this.settlementError = '';
+    this.khataCheckoutNotice = '';
     if (this.settling || this.cart.length === 0) {
       return;
     }
@@ -509,10 +511,6 @@ export class BillingPageComponent implements OnInit, OnDestroy {
       return;
     }
     const receiptWindow = window.open('', '_blank', 'width=420,height=720');
-    if (!receiptWindow) {
-      this.khataCustomerLoadError = 'Allow pop-ups to print the receipt, then try again.';
-      return;
-    }
 
     const purchasedLines = this.cart.map((line) => ({ ...line }));
     this.customerName = customer.customerName;
@@ -533,7 +531,9 @@ export class BillingPageComponent implements OnInit, OnDestroy {
         this.khataCustomers = this.khataCustomers.map((item) =>
           item.id === updatedCustomer.id ? updatedCustomer : item
         );
-        this.writeReceipt(receiptWindow, this.buildReceipt(purchasedLines, 'Udhar Khata'));
+        if (receiptWindow) {
+          this.writeReceipt(receiptWindow, this.buildReceipt(purchasedLines, 'Udhar Khata'));
+        }
         this.products = this.products.map((product) => {
           const purchased = purchasedLines.find((line) => line.product.id === product.id);
           return purchased
@@ -545,10 +545,13 @@ export class BillingPageComponent implements OnInit, OnDestroy {
         this.cashReceived = null;
         this.customerName = '';
         this.showKhataSelector = false;
+        this.khataCheckoutNotice = receiptWindow
+          ? 'Credit sale saved to the customer passbook.'
+          : 'Credit sale saved to the customer passbook. The browser blocked the receipt window.';
         this.settling = false;
       },
       error: (error) => {
-        receiptWindow.close();
+        receiptWindow?.close();
         this.settling = false;
         const detail = error.error?.detail ?? error.error?.message;
         this.khataCustomerLoadError = typeof detail === 'string' && detail.trim()
@@ -556,6 +559,11 @@ export class BillingPageComponent implements OnInit, OnDestroy {
           : 'Credit checkout failed. Inventory and the customer ledger were not changed.';
       }
     });
+  }
+
+  selectKhataCustomer(customer: KhataCustomer): void {
+    this.selectedKhataCustomerId = customer.id;
+    this.khataCustomerLoadError = '';
   }
 
   trackKhataCustomer(_: number, customer: KhataCustomer): number {

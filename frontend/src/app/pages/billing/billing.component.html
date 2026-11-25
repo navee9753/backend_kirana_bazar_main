@@ -317,6 +317,7 @@
         <p class="khata-checkout-hint">Credit bills are added to a selected customer's passbook.</p>
 
         <p *ngIf="settlementError" class="field-error settlement-error" role="alert">{{ settlementError }}</p>
+        <p *ngIf="khataCheckoutNotice" class="khata-checkout-notice" role="status">{{ khataCheckoutNotice }}</p>
 
         <div class="settlement-actions">
           <button type="button" class="settlement-button cash-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="settle('Cash')">
@@ -606,7 +607,7 @@
           *ngFor="let customer of filteredKhataCustomers; trackBy: trackKhataCustomer"
           [class.selected]="selectedKhataCustomerId === customer.id"
           [disabled]="settling"
-          (click)="selectedKhataCustomerId = customer.id; khataCustomerLoadError = ''"
+          (click)="selectKhataCustomer(customer)"
         >
           <span class="khata-customer-avatar" aria-hidden="true">{{ customer.customerName.charAt(0).toUpperCase() }}</span>
           <span class="khata-customer-option-details">

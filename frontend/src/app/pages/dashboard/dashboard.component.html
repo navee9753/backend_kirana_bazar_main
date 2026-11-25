@@ -4,7 +4,12 @@
       <p class="eyebrow">Daily overview</p>
       <h2>NAVEEN KIRANA BAZAR</h2>
     </div>
-    <a class="action-button" routerLink="/billing">+ Add sale</a>
+    <a class="action-button" routerLink="/billing">
+      <svg aria-hidden="true" class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+      </svg>
+      Add sale
+    </a>
   </header>
 
   <div *ngIf="loadErrors.length" class="load-errors" role="status">
@@ -13,7 +18,23 @@
 
   <section class="dashboard-row metric-row" aria-label="Business metrics">
     <article class="stat-card" *ngFor="let stat of stats" [ngClass]="stat.tone">
-      <span>{{ stat.label }}</span>
+      <div class="stat-label">
+        <span>{{ stat.label }}</span>
+        <span class="stat-icon" aria-hidden="true" [ngSwitch]="stat.label">
+          <svg *ngSwitchCase="'Total Assets'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M5 6h14a2 2 0 0 1 2 2v10H3V8a2 2 0 0 1 2-2Zm4 8h2" />
+          </svg>
+          <svg *ngSwitchCase="'Total Market Udhar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-2 0-3 .8-3 2s1 2 3 2 3 .8 3 2-1 2-3 2m0-10V6m0 12v-2m9-4a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <svg *ngSwitchCase="'Mandi Alerts'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12h4" />
+          </svg>
+          <svg *ngSwitchCase="'Out of Stock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16v13H4zM3 7l2-4h14l2 4M9 12l6 6m0-6-6 6" />
+          </svg>
+        </span>
+      </div>
       <strong>{{ stat.value }}</strong>
       <small *ngIf="stat.label === 'Mandi Alerts'">No mandi alert source configured</small>
     </article>
@@ -41,7 +62,12 @@
       <div class="panel-head">
         <div>
           <p class="eyebrow">Restock soon</p>
-          <h3 id="stock-heading">Low Stock Alert Grid</h3>
+          <h3 id="stock-heading">
+            <svg aria-hidden="true" class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3 2.8 19h18.4L12 3Zm0 6v4m0 3h.01" />
+            </svg>
+            Low Stock Alert Grid
+          </h3>
         </div>
         <a routerLink="/inventory" class="subtle-link">View inventory</a>
       </div>
@@ -67,7 +93,12 @@
       <div class="panel-head">
         <div>
           <p class="eyebrow">Customer follow-up</p>
-          <h3 id="khata-heading">Active Udhar Khata</h3>
+          <h3 id="khata-heading">
+            <svg aria-hidden="true" class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3h14v18l-7-4-7 4V3Zm4 5h6m-6 4h6" />
+            </svg>
+            Active Udhar Khata
+          </h3>
         </div>
         <a routerLink="/khata" class="subtle-link">View khata</a>
       </div>
@@ -101,9 +132,17 @@
       <div class="utility-heading">
         <div>
           <p class="eyebrow">Spreadsheet utility</p>
-          <h3 id="bulk-loader-heading">Bulk Loader Preview</h3>
+          <h3 id="bulk-loader-heading">
+            <svg aria-hidden="true" class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4zM4 10h16M10 4v16" />
+            </svg>
+            Bulk Loader Preview
+          </h3>
         </div>
         <label class="file-picker">
+          <svg aria-hidden="true" class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7 9m5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
+          </svg>
           Choose CSV
           <input type="file" accept=".csv,text/csv" (change)="onCsvSelected($event)" aria-label="Choose a CSV file to preview" />
         </label>
@@ -128,7 +167,13 @@
       <div class="utility-heading">
         <div>
           <p class="eyebrow">Session security</p>
-          <h3 id="timer-heading">Inactivity logout</h3>
+          <h3 id="timer-heading">
+            <svg aria-hidden="true" class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="13" r="8" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4l2.5 1.5M9 2h6m-3 0v3" />
+            </svg>
+            Inactivity logout
+          </h3>
         </div>
         <strong class="timer-value" aria-live="polite">{{ timerLabel }}</strong>
       </div>

@@ -19,6 +19,7 @@
 .page-head h2 {
   margin: 0;
   font-size: clamp(1.7rem, 3vw, 2.4rem);
+  letter-spacing: -0.035em;
 }
 
 .eyebrow,
@@ -37,25 +38,43 @@
 }
 
 .logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   flex: 0 0 auto;
-  border: 0;
+  min-height: 42px;
+  border: 1px solid #fecdd3;
   border-radius: 12px;
-  background: #fee2e2;
+  background: #fff1f2;
   padding: 10px 14px;
-  color: #991b1b;
+  color: #be123c;
   font-weight: 700;
   cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.logout-button:hover {
+  border-color: #fda4af;
+  background: #ffe4e6;
+}
+
+.button-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 
 .brand-hero {
   overflow: hidden;
-  border-radius: 20px;
+  border: 1px solid rgb(16 185 129 / 22%);
+  border-radius: 24px;
   background:
-    radial-gradient(ellipse at 92% 10%, rgb(167 243 208 / 22%), transparent 34%),
-    linear-gradient(110deg, #047857, #059669);
+    radial-gradient(ellipse at 92% 10%, rgb(167 243 208 / 24%), transparent 34%),
+    linear-gradient(115deg, #047857, #059669 70%, #10b981);
   padding: clamp(24px, 5vw, 40px);
   color: #fff;
-  box-shadow: 0 10px 24px rgb(6 95 70 / 12%);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 6%);
 }
 
 .hero-kicker {
@@ -88,11 +107,17 @@
 
 .profile-card {
   min-width: 0;
-  border: 1px solid #e8edf0;
-  border-radius: 16px;
-  background: #fff;
+  border: 1px solid rgb(226 232 240 / 85%);
+  border-radius: 20px;
+  background: var(--surface);
   padding: clamp(18px, 2.8vw, 26px);
-  box-shadow: 0 8px 26px rgb(15 23 42 / 5%);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 6%);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.profile-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgb(15 23 42 / 5%);
 }
 
 .business-card {
@@ -111,13 +136,16 @@
   align-items: center;
   gap: 9px;
   margin: 0;
-  color: #172b25;
+  color: var(--slate-900);
   font-size: clamp(1.08rem, 2.2vw, 1.25rem);
   line-height: 1.4;
 }
 
-.profile-card h3 > span {
+.heading-icon {
+  width: 21px;
+  height: 21px;
   flex: 0 0 auto;
+  color: #059669;
 }
 
 .overview {
@@ -155,10 +183,13 @@
   height: 22px;
   place-items: center;
   border-radius: 50%;
-  background: #dcfce7;
-  color: #15803d;
-  font-size: 0.8rem;
-  font-weight: 800;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.check-icon svg {
+  width: 14px;
+  height: 14px;
 }
 
 .contact-card h3 {
@@ -176,10 +207,16 @@
   align-items: flex-start;
   gap: 12px;
   min-width: 0;
-  border: 1px solid #edf1f3;
-  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
   background: #f8fafc;
   padding: 13px;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.contact-item:hover {
+  border-color: #a7f3d0;
+  background: #f0fdf4;
 }
 
 .contact-icon {
@@ -188,10 +225,14 @@
   width: 34px;
   height: 34px;
   place-items: center;
-  border-radius: 10px;
-  background: #e8f5ee;
+  border-radius: 11px;
+  background: #ecfdf5;
   color: #047857;
-  font-size: 1rem;
+}
+
+.contact-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .contact-item > div {
@@ -200,14 +241,14 @@
 
 .contact-item h4 {
   margin: 0 0 4px;
-  color: #263b32;
+  color: var(--slate-900);
   font-size: 0.78rem;
   letter-spacing: 0.035em;
 }
 
 .contact-item p {
   margin: 0;
-  color: #52615b;
+  color: var(--slate-700);
   font-size: 0.86rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -219,6 +260,11 @@
   font-size: 0.74rem;
   line-height: 1.7;
   text-align: center;
+}
+
+.logout-button:focus-visible {
+  outline: 3px solid rgb(16 185 129 / 35%);
+  outline-offset: 2px;
 }
 
 .about-footer span {

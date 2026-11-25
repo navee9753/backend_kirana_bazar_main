@@ -25,6 +25,13 @@
   font-size: clamp(1.7rem, 3vw, 2.4rem);
 }
 
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .eyebrow {
   margin: 0 0 5px;
   color: var(--slate-500);
@@ -47,6 +54,24 @@
 .new-bill-button {
   background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
   color: #fff;
+}
+
+.utility-button {
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 9px 12px;
+  color: var(--brand-700);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.utility-button:hover {
+  border-color: var(--brand-500);
+  background: var(--panel-alt);
 }
 
 .new-bill-button:disabled,
@@ -429,6 +454,105 @@
 
 .calculator-heading .eyebrow {
   color: var(--brand-700);
+}
+
+.utility-modal {
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+}
+
+.utility-form {
+  display: grid;
+  gap: 15px;
+}
+
+.utility-form > label {
+  display: grid;
+  gap: 7px;
+  color: var(--slate-700);
+  font-weight: 700;
+}
+
+.utility-form input,
+.utility-input select {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 10px 12px;
+  color: var(--slate-900);
+  font: inherit;
+}
+
+.utility-input {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 54px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 5px 10px;
+  color: var(--brand-700);
+  font-weight: 750;
+}
+
+.utility-input input,
+.utility-input select {
+  border: 0;
+  outline: 0;
+}
+
+.utility-input input {
+  text-align: right;
+}
+
+.utility-input select {
+  width: auto;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.utility-results {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 14px;
+  background: var(--panel-alt);
+  padding: 16px;
+  color: var(--slate-700);
+}
+
+.utility-results strong {
+  color: var(--brand-700);
+  font-size: 1.3rem;
+  white-space: nowrap;
+}
+
+.utility-hint {
+  margin: 0;
+  color: var(--slate-500);
+  font-size: 0.82rem;
+}
+
+.utility-qr-frame {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fff;
+  padding: 14px;
+  text-align: center;
+}
+
+.utility-qr-frame p {
+  margin: 0;
+  color: var(--slate-700);
+  font-weight: 750;
 }
 
 .calculator-close {
@@ -910,6 +1034,11 @@
 @media (max-width: 420px) {
   .page-head {
     align-items: flex-start;
+  }
+
+  .page-actions {
+    display: grid;
+    justify-items: stretch;
   }
 
   .category-chips {

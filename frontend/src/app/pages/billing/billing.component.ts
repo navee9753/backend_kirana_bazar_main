@@ -30,6 +30,13 @@ export class BillingPageComponent implements OnInit, OnDestroy {
   readonly categories: ProductCategory[] = ['Staples', 'Snacks', 'Dairy', 'Personal Care'];
   products: Product[] = [];
   cart: CartLine[] = [];
+  activeUtility: 'loose' | 'upi' | null = null;
+  utilityItemName = '';
+  utilityPricePerKg: number | null = null;
+  utilityWeightInput: number | null = 500;
+  utilityWeightUnit: 'g' | 'kg' = 'g';
+  utilityUpiId = this.shopUpiId;
+  utilityUpiAmount: number | null = null;
   showUpiModal = false;
   upiQrString = '';
   searchTerm = '';
@@ -85,6 +92,40 @@ export class BillingPageComponent implements OnInit, OnDestroy {
 
   get grossTotal(): number {
     return this.cart.reduce((total, line) => total + this.lineTotal(line), 0);
+  }
+
+  get utilityWeightKg(): number {
+    const weight = Number(this.utilityWeightInput);
+    if (!Number.isFinite(weight) || weight <= 0) {
+      return 0;
+    }
+    return this.utilityWeightUnit === 'g' ? weight / 1000 : weight;
+  }
+
+  get utilityItemTotal(): number {
+    const pricePerKg = Number(this.utilityPricePerKg);
+    return Number.isFinite(pricePerKg) && pricePerKg > 0
+      ? this.roundCurrency(this.utilityWeightKg * pricePerKg)
+      : 0;
+  }
+
+  get utilityLooseCalculationIsValid(): boolean {
+    return !!this.utilityItemName.trim()
+      && this.utilityWeightKg > 0
+      && Number.isFinite(Number(this.utilityPricePerKg))
+      && Number(this.utilityPricePerKg) > 0;
+  }
+
+  get utilityUpiIdIsValid(): boolean {
+    return /^[A-Za-z0-9._-]{2,256}@[A-Za-z0-9.-]{2,64}$/.test(this.utilityUpiId.trim());
+  }
+
+  get utilityUpiQrString(): string {
+    const amount = Number(this.utilityUpiAmount);
+    if (!this.utilityUpiIdIsValid || !Number.isFinite(amount) || amount <= 0) {
+      return '';
+    }
+    return `upi://pay?pa=${encodeURIComponent(this.utilityUpiId.trim())}&pn=${encodeURIComponent(this.shopName)}&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent('Payment')}`;
   }
 
   get calculatorQuantityKg(): number {
@@ -245,6 +286,14 @@ export class BillingPageComponent implements OnInit, OnDestroy {
   closeCalculator(): void {
     this.calculatorProduct = null;
     this.calculatorError = '';
+  }
+
+  openUtility(utility: 'loose' | 'upi'): void {
+    this.activeUtility = utility;
+  }
+
+  closeUtility(): void {
+    this.activeUtility = null;
   }
 
   removeFromCart(line: CartLine): void {

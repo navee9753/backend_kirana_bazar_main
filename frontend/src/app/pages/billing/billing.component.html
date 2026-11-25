@@ -4,14 +4,22 @@
       <p class="eyebrow">Point of sale</p>
       <h2>Billing</h2>
     </div>
-    <button
-      type="button"
-      class="new-bill-button"
-      [disabled]="settling"
-      (click)="newBill()"
-    >
-      New bill
-    </button>
+    <div class="page-actions">
+      <button type="button" class="utility-button" (click)="openUtility('loose')">
+        ⚖️ Loose item calculator
+      </button>
+      <button type="button" class="utility-button" (click)="openUtility('upi')">
+        ▦ UPI QR generator
+      </button>
+      <button
+        type="button"
+        class="new-bill-button"
+        [disabled]="settling"
+        (click)="newBill()"
+      >
+        New bill
+      </button>
+    </div>
   </header>
 
   <div class="billing-grid">
@@ -358,6 +366,129 @@
         </div>
       </ng-template>
     </aside>
+  </div>
+
+  <div
+    *ngIf="activeUtility as utility"
+    class="calculator-backdrop"
+    role="presentation"
+    (click)="closeUtility()"
+    (keydown.escape)="closeUtility()"
+  >
+    <section
+      class="loose-calculator utility-modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="utility === 'loose' ? 'genericLooseTitle' : 'genericUpiTitle'"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="calculator-heading">
+        <div>
+          <p class="eyebrow">Billing tools</p>
+          <h2 *ngIf="utility === 'loose'" id="genericLooseTitle">Loose item calculator</h2>
+          <h2 *ngIf="utility === 'upi'" id="genericUpiTitle">UPI QR generator</h2>
+        </div>
+        <button type="button" class="calculator-close" aria-label="Close tool" (click)="closeUtility()">×</button>
+      </header>
+
+      <ng-container *ngIf="utility === 'loose'; else genericUpiGenerator">
+        <div class="utility-form">
+          <label>
+            Item name
+            <input type="text" name="utilityItemName" [(ngModel)]="utilityItemName" placeholder="e.g. Rice" />
+          </label>
+          <label>
+            Item price per Kg
+            <span class="utility-input">
+              <span aria-hidden="true">₹</span>
+              <input
+                type="number"
+                name="utilityPricePerKg"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                [(ngModel)]="utilityPricePerKg"
+                placeholder="0.00"
+              />
+            </span>
+          </label>
+          <label>
+            Weight
+            <span class="utility-input">
+              <input
+                type="number"
+                name="utilityWeight"
+                min="0"
+                [step]="utilityWeightUnit === 'g' ? 1 : 0.001"
+                inputmode="decimal"
+                [(ngModel)]="utilityWeightInput"
+                placeholder="Enter weight"
+              />
+              <select name="utilityWeightUnit" [(ngModel)]="utilityWeightUnit" aria-label="Weight unit">
+                <option value="g">g</option>
+                <option value="kg">Kg</option>
+              </select>
+            </span>
+          </label>
+          <div class="utility-results" aria-live="polite">
+            <span>{{ utilityItemName.trim() || 'Item' }} · {{ utilityWeightKg | number:'1.0-3' }} Kg</span>
+            <strong>{{ formatCurrency(utilityItemTotal) }}</strong>
+          </div>
+          <p *ngIf="!utilityLooseCalculationIsValid" class="utility-hint">
+            Enter an item name, a price per Kg, and a weight greater than zero.
+          </p>
+        </div>
+      </ng-container>
+
+      <ng-template #genericUpiGenerator>
+        <div class="utility-form">
+          <label>
+            UPI ID
+            <input
+              type="text"
+              name="utilityUpiId"
+              [(ngModel)]="utilityUpiId"
+              autocomplete="off"
+              placeholder="name@bank"
+            />
+          </label>
+          <label>
+            Payment amount
+            <span class="utility-input">
+              <span aria-hidden="true">₹</span>
+              <input
+                type="number"
+                name="utilityUpiAmount"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                [(ngModel)]="utilityUpiAmount"
+                placeholder="0.00"
+              />
+            </span>
+          </label>
+          <p *ngIf="utilityUpiId && !utilityUpiIdIsValid" class="field-error" role="alert">
+            Enter a valid UPI ID, for example name&#64;bank.
+          </p>
+          <p *ngIf="utilityUpiIdIsValid && (!utilityUpiAmount || utilityUpiAmount <= 0)" class="utility-hint">
+            Enter an amount greater than zero to generate the QR code.
+          </p>
+          <div *ngIf="utilityUpiQrString" class="utility-qr-frame">
+            <qrcode
+              [qrdata]="utilityUpiQrString"
+              [width]="220"
+              [errorCorrectionLevel]="'M'"
+              aria-label="Generated UPI payment QR code"
+            ></qrcode>
+            <p>Scan to pay {{ formatCurrency(utilityUpiAmount || 0) }}</p>
+          </div>
+        </div>
+      </ng-template>
+
+      <footer class="calculator-actions">
+        <button type="button" class="secondary-button" (click)="closeUtility()">Close</button>
+      </footer>
+    </section>
   </div>
 
   <div

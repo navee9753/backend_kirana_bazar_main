@@ -412,8 +412,24 @@
               />
             </span>
           </label>
-          <label>
-            Weight
+          <div class="calculator-modes utility-modes" role="tablist" aria-label="Choose loose-item calculation">
+            <button
+              type="button"
+              role="tab"
+              [attr.aria-selected]="utilityCalculatorMode === 'weight'"
+              [class.active]="utilityCalculatorMode === 'weight'"
+              (click)="utilityCalculatorMode = 'weight'"
+            >Weight → Price</button>
+            <button
+              type="button"
+              role="tab"
+              [attr.aria-selected]="utilityCalculatorMode === 'amount'"
+              [class.active]="utilityCalculatorMode === 'amount'"
+              (click)="utilityCalculatorMode = 'amount'"
+            >Amount → Weight</button>
+          </div>
+          <label *ngIf="utilityCalculatorMode === 'weight'; else utilityAmountField">
+            Weight to sell
             <span class="utility-input">
               <input
                 type="number"
@@ -430,12 +446,34 @@
               </select>
             </span>
           </label>
+          <ng-template #utilityAmountField>
+            <label>
+              Amount to spend
+              <span class="utility-input">
+                <span aria-hidden="true">₹</span>
+                <input
+                  type="number"
+                  name="utilityAmount"
+                  min="0"
+                  step="0.01"
+                  inputmode="decimal"
+                  [(ngModel)]="utilityAmountInput"
+                  placeholder="Enter amount"
+                />
+              </span>
+            </label>
+          </ng-template>
           <div class="utility-results" aria-live="polite">
-            <span>{{ utilityItemName.trim() || 'Item' }} · {{ utilityWeightKg | number:'1.0-3' }} Kg</span>
-            <strong>{{ formatCurrency(utilityItemTotal) }}</strong>
+            <span *ngIf="utilityCalculatorMode === 'weight'">
+              {{ utilityItemName.trim() || 'Item' }} · {{ utilityWeightKg | number:'1.0-3' }} Kg
+            </span>
+            <span *ngIf="utilityCalculatorMode === 'amount'">
+              {{ utilityItemName.trim() || 'Item' }} · {{ formatCurrency(utilityAmountInput || 0) }}
+            </span>
+            <strong>{{ utilityCalculatorMode === 'weight' ? formatCurrency(utilityItemTotal) : formatWeight(utilityWeightKg) }}</strong>
           </div>
           <p *ngIf="!utilityLooseCalculationIsValid" class="utility-hint">
-            Enter an item name, a price per Kg, and a weight greater than zero.
+            Enter an item name, a price per Kg, and a positive {{ utilityCalculatorMode === 'weight' ? 'weight' : 'amount' }}.
           </p>
         </div>
       </ng-container>

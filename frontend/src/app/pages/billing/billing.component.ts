@@ -31,10 +31,12 @@ export class BillingPageComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   cart: CartLine[] = [];
   activeUtility: 'loose' | 'upi' | null = null;
+  utilityCalculatorMode: 'weight' | 'amount' = 'weight';
   utilityItemName = '';
   utilityPricePerKg: number | null = null;
   utilityWeightInput: number | null = 500;
   utilityWeightUnit: 'g' | 'kg' = 'g';
+  utilityAmountInput: number | null = null;
   utilityUpiId = this.shopUpiId;
   utilityUpiAmount: number | null = null;
   showUpiModal = false;
@@ -95,6 +97,14 @@ export class BillingPageComponent implements OnInit, OnDestroy {
   }
 
   get utilityWeightKg(): number {
+    if (this.utilityCalculatorMode === 'amount') {
+      const amount = Number(this.utilityAmountInput);
+      const pricePerKg = Number(this.utilityPricePerKg);
+      return Number.isFinite(amount) && amount > 0 && Number.isFinite(pricePerKg) && pricePerKg > 0
+        ? this.roundQuantity(amount / pricePerKg)
+        : 0;
+    }
+
     const weight = Number(this.utilityWeightInput);
     if (!Number.isFinite(weight) || weight <= 0) {
       return 0;
@@ -104,14 +114,23 @@ export class BillingPageComponent implements OnInit, OnDestroy {
 
   get utilityItemTotal(): number {
     const pricePerKg = Number(this.utilityPricePerKg);
+    if (this.utilityCalculatorMode === 'amount') {
+      const amount = Number(this.utilityAmountInput);
+      return Number.isFinite(amount) && amount > 0 ? this.roundCurrency(amount) : 0;
+    }
     return Number.isFinite(pricePerKg) && pricePerKg > 0
       ? this.roundCurrency(this.utilityWeightKg * pricePerKg)
       : 0;
   }
 
   get utilityLooseCalculationIsValid(): boolean {
+    const calculationInput = this.utilityCalculatorMode === 'amount'
+      ? Number(this.utilityAmountInput)
+      : Number(this.utilityWeightInput);
     return !!this.utilityItemName.trim()
       && this.utilityWeightKg > 0
+      && Number.isFinite(calculationInput)
+      && calculationInput > 0
       && Number.isFinite(Number(this.utilityPricePerKg))
       && Number(this.utilityPricePerKg) > 0;
   }

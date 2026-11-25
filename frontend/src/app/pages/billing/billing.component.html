@@ -314,33 +314,7 @@
           </div>
         </section>
 
-        <section class="khata-customer" aria-label="Khata customer details">
-          <p class="eyebrow">For credit settlement</p>
-          <label>
-            Customer name
-            <input
-              type="text"
-              name="customerName"
-              [(ngModel)]="customerName"
-              [disabled]="settling"
-              autocomplete="name"
-              placeholder="Name on khata"
-            />
-          </label>
-          <label>
-            Phone number <span class="optional-label">optional</span>
-            <input
-              type="tel"
-              name="customerPhone"
-              [(ngModel)]="customerPhone"
-              [disabled]="settling"
-              autocomplete="tel"
-              inputmode="numeric"
-              maxlength="10"
-              placeholder="10-digit number"
-            />
-          </label>
-        </section>
+        <p class="khata-checkout-hint">Credit bills are added to a selected customer's passbook.</p>
 
         <p *ngIf="settlementError" class="field-error settlement-error" role="alert">{{ settlementError }}</p>
 
@@ -351,7 +325,7 @@
           <button type="button" class="settlement-button upi-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="openUpiPaymentModal()">
             <span>📱</span> UPI / Online
           </button>
-          <button type="button" class="settlement-button khata-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="settle('Udhar Khata')">
+          <button type="button" class="settlement-button khata-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="openKhataCheckout()">
             <span>📓</span> Add to Udhar Khata
           </button>
         </div>
@@ -578,6 +552,82 @@
         [disabled]="settling"
         (click)="confirmUpiPayment()"
       >✅ Payment Received &amp; Complete Bill</button>
+    </section>
+  </div>
+
+  <div
+    *ngIf="showKhataSelector"
+    class="khata-selector-backdrop"
+    role="presentation"
+    (click)="closeKhataSelector()"
+    (keydown.escape)="closeKhataSelector()"
+  >
+    <section
+      class="khata-selector-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="khataSelectorTitle"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="khata-selector-heading">
+        <div>
+          <p class="eyebrow">Credit checkout</p>
+          <h2 id="khataSelectorTitle">Choose Khata customer</h2>
+        </div>
+        <button type="button" class="calculator-close" aria-label="Close customer selector"
+                [disabled]="settling" (click)="closeKhataSelector()">×</button>
+      </header>
+
+      <p class="khata-selector-total">Bill total <strong>{{ formatCurrency(netPayable) }}</strong></p>
+
+      <label class="khata-customer-search">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" name="khataCustomerSearch" [(ngModel)]="khataCustomerSearch"
+               placeholder="Search customer name or phone" aria-label="Search Khata customers">
+      </label>
+
+      <p *ngIf="khataCustomersLoading" class="khata-selector-message">Loading customers…</p>
+      <p *ngIf="khataCustomerLoadError" class="khata-selector-error" role="alert">
+        {{ khataCustomerLoadError }}
+        <button *ngIf="!settling && !khataCustomersLoading" type="button" class="secondary-button"
+                (click)="openKhataCheckout()">Retry</button>
+      </p>
+      <p *ngIf="!khataCustomersLoading && !khataCustomerLoadError && khataCustomers.length === 0"
+         class="khata-selector-message">
+        No Khata customers are available. Add a customer in the Khata page first.
+      </p>
+      <p *ngIf="!khataCustomersLoading && khataCustomers.length > 0 && filteredKhataCustomers.length === 0"
+         class="khata-selector-message">No customers match your search.</p>
+
+      <div class="khata-customer-options" *ngIf="!khataCustomersLoading && filteredKhataCustomers.length">
+        <button
+          type="button"
+          class="khata-customer-option"
+          *ngFor="let customer of filteredKhataCustomers; trackBy: trackKhataCustomer"
+          [class.selected]="selectedKhataCustomerId === customer.id"
+          [disabled]="settling"
+          (click)="selectedKhataCustomerId = customer.id; khataCustomerLoadError = ''"
+        >
+          <span class="khata-customer-avatar" aria-hidden="true">{{ customer.customerName.charAt(0).toUpperCase() }}</span>
+          <span class="khata-customer-option-details">
+            <strong>{{ customer.customerName }}</strong>
+            <small>{{ customer.phoneNumber }}</small>
+          </span>
+          <span class="khata-customer-balance">
+            {{ formatCurrency(customer.outstandingBalance) }} due
+          </span>
+          <span class="khata-customer-radio" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <footer class="khata-selector-actions">
+        <button type="button" class="secondary-button" [disabled]="settling" (click)="closeKhataSelector()">Cancel</button>
+        <button type="button" class="primary-button"
+                [disabled]="settling || !selectedKhataCustomerId || khataCustomersLoading"
+                (click)="confirmKhataCheckout()">
+          {{ settling ? 'Completing bill…' : 'Confirm credit sale' }}
+        </button>
+      </footer>
     </section>
   </div>
 </section>

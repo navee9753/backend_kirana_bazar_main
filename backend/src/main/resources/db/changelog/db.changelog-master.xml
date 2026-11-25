@@ -13,5 +13,6 @@
     <include file="classpath:/db/changelog/v1.5-supplier-purchases.xml"/>
     <include file="classpath:/db/changelog/v1.6-loose-items-and-decimal-stock.xml"/>
     <include file="classpath:/db/changelog/v1.7-product-barcode.xml"/>
+    <include file="classpath:/db/changelog/v1.8-khata-customer-ledger.xml"/>
 
 </databaseChangeLog>

@@ -27,7 +27,7 @@ public class SecurityConfig {
     private final List<String> allowedOrigins;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
-                          @Value("${app.cors.allowed-origins:http://localhost:4200}") String allowedOrigins) {
+                          @Value("${app.cors.allowed-origins:http://localhost:4200,https://backend-kirana-bazar-main.vercel.app}") String allowedOrigins) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.allowedOrigins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/dashboard/**", "/api/products/**", "/api/khata/**", "/api/festivals").hasAnyAuthority("ROLE_ADMIN", "ROLE_WORKER")
                         .requestMatchers(HttpMethod.POST, "/api/products").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/khata").hasAnyAuthority("ROLE_ADMIN", "ROLE_WORKER")
+                        .requestMatchers(HttpMethod.POST, "/api/khata/customers/**", "/api/khata/checkout-credit").hasAnyAuthority("ROLE_ADMIN", "ROLE_WORKER")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

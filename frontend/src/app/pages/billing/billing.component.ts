@@ -2,10 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QRCodeModule } from 'angularx-qrcode';
-import { of, Subscription } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
-import { InventoryService, Khata, Product } from '../../services/inventory.service';
+import { InventoryService, Product } from '../../services/inventory.service';
+import { KhataCustomer, KhataService } from '../../services/khata.service';
 
 type ProductCategory = 'Staples' | 'Snacks' | 'Dairy' | 'Personal Care';
 type PaymentMethod = 'Cash' | 'UPI / Online' | 'Udhar Khata';
@@ -53,7 +53,12 @@ export class BillingPageComponent implements OnInit, OnDestroy {
   customDiscount = 0;
   cashReceived: number | null = null;
   customerName = '';
-  customerPhone = '';
+  khataCustomers: KhataCustomer[] = [];
+  khataCustomerSearch = '';
+  selectedKhataCustomerId: number | null = null;
+  showKhataSelector = false;
+  khataCustomersLoading = false;
+  khataCustomerLoadError = '';
   loading = true;
   settling = false;
   loadError = '';
@@ -61,7 +66,10 @@ export class BillingPageComponent implements OnInit, OnDestroy {
 
   private readonly subscriptions = new Subscription();
 
-  constructor(private readonly inventoryService: InventoryService) {}
+  constructor(
+    private readonly inventoryService: InventoryService,
+    private readonly khataService: KhataService
+  ) {}
 
   ngOnInit(): void {
     this.subscriptions.add(this.inventoryService.getProducts().subscribe({
@@ -354,7 +362,6 @@ export class BillingPageComponent implements OnInit, OnDestroy {
     this.customDiscount = 0;
     this.cashReceived = null;
     this.customerName = '';
-    this.customerPhone = '';
     this.settlementError = '';
   }
 
@@ -385,6 +392,10 @@ export class BillingPageComponent implements OnInit, OnDestroy {
   }
 
   settle(method: PaymentMethod): void {
+    if (method === 'Udhar Khata') {
+      this.openKhataCheckout();
+      return;
+    }
     this.settlementError = '';
     if (this.settling || this.cart.length === 0) {
       return;
@@ -395,14 +406,6 @@ export class BillingPageComponent implements OnInit, OnDestroy {
     }
     if (method === 'Cash' && Number(this.cashReceived ?? 0) < this.netPayable) {
       this.settlementError = 'Cash received must cover the net payable amount.';
-      return;
-    }
-    if (method === 'Udhar Khata' && !this.customerName.trim()) {
-      this.settlementError = 'Enter a customer name to add this bill to khata.';
-      return;
-    }
-    if (method === 'Udhar Khata' && this.customerPhone.trim() && !/^\d{10}$/.test(this.customerPhone.trim())) {
-      this.settlementError = 'Enter a valid 10-digit customer phone number or leave it empty.';
       return;
     }
     if (this.cart.some((line) => line.product.id == null)) {
@@ -423,19 +426,7 @@ export class BillingPageComponent implements OnInit, OnDestroy {
       productId: line.product.id!,
       quantity: line.quantity
     }));
-    const settlement$ = this.inventoryService.deductStockBatch(stockDeductions).pipe(
-      switchMap(() => {
-        if (method !== 'Udhar Khata') {
-          return of(null);
-        }
-        const entry: Khata = {
-          customerName: this.customerName.trim(),
-          phoneNumber: this.customerPhone.trim(),
-          outstandingBalance: this.netPayable
-        };
-        return this.inventoryService.addKhata(entry);
-      })
-    );
+    const settlement$ = this.inventoryService.deductStockBatch(stockDeductions);
 
     this.subscriptions.add(settlement$.subscribe({
       next: () => {
@@ -450,10 +441,6 @@ export class BillingPageComponent implements OnInit, OnDestroy {
         this.cart = [];
         this.customDiscount = 0;
         this.cashReceived = null;
-        if (method === 'Udhar Khata') {
-          this.customerName = '';
-          this.customerPhone = '';
-        }
         this.settling = false;
       },
       error: () => {
@@ -462,6 +449,117 @@ export class BillingPageComponent implements OnInit, OnDestroy {
         this.settlementError = 'The bill could not be completed. Check inventory and khata, then try again.';
       }
     }));
+  }
+
+  get filteredKhataCustomers(): KhataCustomer[] {
+    const query = this.khataCustomerSearch.trim().toLocaleLowerCase();
+    return this.khataCustomers.filter((customer) =>
+      !query
+      || customer.customerName.toLocaleLowerCase().includes(query)
+      || (customer.phoneNumber ?? '').includes(query)
+    );
+  }
+
+  openKhataCheckout(): void {
+    this.settlementError = '';
+    if (this.settling || this.cart.length === 0) {
+      return;
+    }
+    if (!this.discountIsValid) {
+      this.settlementError = 'Discount must be between zero and the gross total.';
+      return;
+    }
+    if (this.netPayable <= 0) {
+      this.settlementError = 'A credit bill must have an amount greater than zero.';
+      return;
+    }
+    if (this.cart.some((line) => line.product.id == null)) {
+      this.settlementError = 'A product is missing its inventory ID. Reload products before billing.';
+      return;
+    }
+
+    this.selectedKhataCustomerId = null;
+    this.khataCustomerSearch = '';
+    this.khataCustomerLoadError = '';
+    this.showKhataSelector = true;
+    this.khataCustomersLoading = true;
+    this.khataService.getCustomers().subscribe({
+      next: (customers) => {
+        this.khataCustomers = customers;
+        this.khataCustomersLoading = false;
+      },
+      error: () => {
+        this.khataCustomersLoading = false;
+        this.khataCustomerLoadError = 'Customer list could not be loaded. Check the connection and retry.';
+      }
+    });
+  }
+
+  closeKhataSelector(): void {
+    if (!this.settling) {
+      this.showKhataSelector = false;
+      this.khataCustomerLoadError = '';
+    }
+  }
+
+  confirmKhataCheckout(): void {
+    const customer = this.khataCustomers.find((item) => item.id === this.selectedKhataCustomerId);
+    if (!customer || this.settling) {
+      this.khataCustomerLoadError = 'Select a customer before completing this credit bill.';
+      return;
+    }
+    const receiptWindow = window.open('', '_blank', 'width=420,height=720');
+    if (!receiptWindow) {
+      this.khataCustomerLoadError = 'Allow pop-ups to print the receipt, then try again.';
+      return;
+    }
+
+    const purchasedLines = this.cart.map((line) => ({ ...line }));
+    this.customerName = customer.customerName;
+    this.settling = true;
+    this.khataCustomerLoadError = '';
+    this.khataService.checkoutCredit({
+      customerId: customer.id,
+      totalAmount: this.netPayable,
+      itemsSummary: purchasedLines.map((line) =>
+        `${line.product.name} x ${line.product.isLooseItem ? this.formatWeight(line.quantity) : line.quantity}`
+      ).join(', '),
+      cartItems: purchasedLines.map((line) => ({
+        productId: line.product.id!,
+        quantity: line.quantity
+      }))
+    }).subscribe({
+      next: (updatedCustomer) => {
+        this.khataCustomers = this.khataCustomers.map((item) =>
+          item.id === updatedCustomer.id ? updatedCustomer : item
+        );
+        this.writeReceipt(receiptWindow, this.buildReceipt(purchasedLines, 'Udhar Khata'));
+        this.products = this.products.map((product) => {
+          const purchased = purchasedLines.find((line) => line.product.id === product.id);
+          return purchased
+            ? { ...product, currentStock: this.roundQuantity(Number(product.currentStock) - purchased.quantity) }
+            : product;
+        });
+        this.cart = [];
+        this.customDiscount = 0;
+        this.cashReceived = null;
+        this.customerName = '';
+        this.showKhataSelector = false;
+        this.settling = false;
+      },
+      error: (error) => {
+        receiptWindow.close();
+        this.settling = false;
+        const detail = error.error?.detail ?? error.error?.message;
+        this.khataCustomerLoadError = typeof detail === 'string' && detail.trim()
+          ? detail
+          : 'Credit checkout failed. Inventory and the customer ledger were not changed.';
+      }
+    });
+  }
+
+  trackKhataCustomer(_: number, customer: KhataCustomer): number {
+    return customer.id;
   }
 
   formatCurrency(amount: number): string {

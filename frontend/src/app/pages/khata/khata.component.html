@@ -1,99 +1,245 @@
-<section class="page-shell">
-  <header class="page-head">
+<section class="khata-page">
+  <header class="page-header">
     <div>
-      <p class="eyebrow">Khata</p>
-      <h2>Customer ledger</h2>
+      <p class="eyebrow">Customer accounts</p>
+      <h1>Udhar Khata</h1>
+      <p class="page-subtitle">A clear, itemized record of credit and payments.</p>
     </div>
-    <button type="button" class="primary-button" *ngIf="!showForm" (click)="openForm()">+ New entry</button>
+    <button type="button" class="button button-primary" (click)="openCustomerForm()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      New customer
+    </button>
   </header>
 
-  <div class="field-grid summary-grid" *ngIf="!loading && !loadError">
-    <div class="inline-stat warn">
-      <span>To collect</span>
-      <strong>{{ totalDueLabel }}</strong>
-    </div>
-    <div class="inline-stat">
-      <span>Customers with dues</span>
-      <strong>{{ dueCount }}</strong>
-    </div>
-    <div class="inline-stat">
-      <span>Total customers</span>
-      <strong>{{ entries.length }}</strong>
-    </div>
+  <div class="kpi-grid">
+    <article class="kpi-card">
+      <span class="kpi-icon rose-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M7 12h4"/>
+        </svg>
+      </span>
+      <div><p>Total market udhar owed</p><strong>{{ formatCurrency(totalOutstanding) }}</strong></div>
+    </article>
+    <article class="kpi-card">
+      <span class="kpi-icon emerald-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6m3-3h-6"/>
+        </svg>
+      </span>
+      <div><p>Active customers</p><strong>{{ customers.length }}</strong></div>
+    </article>
+    <article class="kpi-card">
+      <span class="kpi-icon amber-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4m0 3h.01"/>
+        </svg>
+      </span>
+      <div><p>Over credit limit</p><strong>{{ customersOverLimit }}</strong></div>
+    </article>
   </div>
 
-  <form class="panel form-panel" *ngIf="showForm" (ngSubmit)="save()" novalidate>
-    <div class="section">
-      <h3>{{ editingId != null ? 'Edit khata entry' : 'New khata entry' }}</h3>
+  <div *ngIf="loadError" class="error-banner" role="alert">
+    <span>{{ loadError }}</span>
+    <button type="button" class="button button-secondary" (click)="loadCustomers()">Retry</button>
+  </div>
 
-      <div class="field-grid">
-        <label>
-          <span>Customer name</span>
-          <input type="text" name="customerName" [(ngModel)]="form.customerName"
-                 placeholder="e.g. Ramesh Kumar" autocomplete="off" required>
-        </label>
+  <div class="workspace-grid">
+    <section class="panel customer-panel" aria-label="Khata customers">
+      <header class="panel-heading">
+        <div><h2>Customers</h2><p>Select a customer to open their passbook.</p></div>
+        <span class="count-pill">{{ filteredCustomers.length }}</span>
+      </header>
 
-        <label>
-          <span>Phone (optional)</span>
-          <input type="tel" name="phoneNumber" [(ngModel)]="form.phoneNumber"
-                 inputmode="numeric" maxlength="10" placeholder="9876543210">
-        </label>
+      <label class="search-field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>
+        </svg>
+        <input type="search" name="customerSearch" [(ngModel)]="searchTerm"
+               placeholder="Search name or phone" aria-label="Search customers by name or phone">
+      </label>
 
-        <label>
-          <span>Amount due (₹)</span>
-          <input type="number" name="outstandingBalance" [(ngModel)]="form.outstandingBalance"
-                 inputmode="decimal" min="0" step="0.01" placeholder="0">
-        </label>
-      </div>
+      <p *ngIf="loading" class="empty-state">Loading customers…</p>
+      <p *ngIf="!loading && !loadError && customers.length === 0" class="empty-state">
+        No customers yet. Add a customer to start a passbook.
+      </p>
+      <p *ngIf="!loading && customers.length > 0 && filteredCustomers.length === 0" class="empty-state">
+        No customers match your search.
+      </p>
 
-      <p class="form-error" role="alert" *ngIf="formError">{{ formError }}</p>
-    </div>
-
-    <div class="form-actions">
-      <button type="button" class="secondary-button" (click)="closeForm()" [disabled]="saving">Cancel</button>
-      <button type="submit" class="primary-button" [disabled]="saving">
-        {{ saving ? 'Saving…' : (editingId != null ? 'Update entry' : 'Save entry') }}
-      </button>
-    </div>
-  </form>
-
-  <div class="panel">
-    <div class="list-head">
-      <h3>All customers</h3>
-      <small *ngIf="!loading && !loadError">{{ entries.length }} total</small>
-    </div>
-
-    <p class="state-text" *ngIf="loading">Loading ledger…</p>
-
-    <div class="state-text error" role="alert" *ngIf="!loading && loadError">
-      <p>{{ loadError }}</p>
-      <button type="button" class="secondary-button" (click)="load()">Retry</button>
-    </div>
-
-    <p class="state-text" *ngIf="!loading && !loadError && entries.length === 0">
-      No khata entries yet. Tap "+ New entry" to add the first one.
-    </p>
-
-    <div class="list-stack" *ngIf="!loading && !loadError && entries.length > 0">
-      <article class="ledger-item" *ngFor="let entry of entries; trackBy: trackById">
-        <div class="avatar" aria-hidden="true">{{ initials(entry.customer) }}</div>
-
-        <div class="ledger-main">
-          <strong>{{ entry.customer }}</strong>
-          <small>{{ entry.phone || 'No phone saved' }}</small>
-        </div>
-
-        <div class="ledger-side">
-          <span class="amount" [class.due]="entry.status === 'Due'">{{ entry.balance }}</span>
-          <span class="badge" [class.badge-due]="entry.status === 'Due'" [class.badge-paid]="entry.status === 'Paid'">
-            {{ entry.status }}
+      <div class="customer-list" *ngIf="!loading && filteredCustomers.length">
+        <button type="button" class="customer-card"
+                *ngFor="let customer of filteredCustomers; trackBy: trackCustomer"
+                [class.selected]="selectedCustomer?.id === customer.id"
+                (click)="selectCustomer(customer)">
+          <span class="avatar">{{ initials(customer.customerName) }}</span>
+          <span class="customer-details">
+            <strong>{{ customer.customerName }}</strong>
+            <small>{{ customer.phoneNumber || 'Phone not saved' }}</small>
+            <span class="limit-track" aria-label="Credit limit usage">
+              <span [class.over-limit]="customer.outstandingBalance > customer.creditLimit"
+                    [style.width.%]="creditUsage(customer)"></span>
+            </span>
+            <small class="limit-caption">
+              {{ formatCurrency(customer.outstandingBalance) }} / {{ formatCurrency(customer.creditLimit) }}
+            </small>
           </span>
-          <div class="table-actions">
-            <button type="button" class="secondary-button small" (click)="editEntry(entry)">Edit</button>
-            <button type="button" class="danger-button small" (click)="deleteEntry(entry)">Delete</button>
+          <span class="balance-badge"
+                [class.due-badge]="customer.outstandingBalance > 0"
+                [class.settled-badge]="customer.outstandingBalance <= 0">
+            {{ customer.outstandingBalance > 0 ? formatCurrency(customer.outstandingBalance) : 'Settled' }}
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel passbook-panel" aria-label="Customer passbook">
+      <ng-container *ngIf="selectedCustomer as customer; else selectCustomerPrompt">
+        <header class="passbook-header">
+          <div class="profile-heading">
+            <span class="avatar large-avatar">{{ initials(customer.customerName) }}</span>
+            <div>
+              <p class="eyebrow">Customer passbook</p>
+              <h2>{{ customer.customerName }}</h2>
+              <p>{{ customer.phoneNumber }}<span *ngIf="customer.address"> · {{ customer.address }}</span></p>
+            </div>
           </div>
+          <a *ngIf="customer.phoneNumber; else unavailableWhatsApp"
+             class="button button-whatsapp" [href]="whatsappUrl(customer)" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M20.5 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20l1.2-4.8a8.4 8.4 0 1 1 16.3-3.7Z"/>
+              <path d="M8.8 8.5c.3-.6.6-.6.9-.6h.4c.2 0 .4.1.5.4l.7 1.7c.1.2.1.4-.1.6l-.6.7c-.2.2-.1.4 0 .6.6 1 1.4 1.7 2.4 2.2.2.1.4.1.6-.1l.8-.9c.2-.2.4-.2.6-.1l1.6.8c.2.1.3.3.3.5 0 .3-.2 1.1-.7 1.5-.5.4-1.1.7-1.8.6-.7-.1-1.6-.4-2.7-.9-1.6-.7-2.9-2-3.7-3.5-.8-1.3-1-2.3-.9-3.1.1-.7.4-1.1.7-1.4Z"/>
+            </svg>
+            WhatsApp reminder
+          </a>
+          <ng-template #unavailableWhatsApp>
+            <span class="button button-disabled" aria-disabled="true" title="No phone number is saved">
+              Phone number unavailable
+            </span>
+          </ng-template>
+        </header>
+
+        <div class="balance-summary">
+          <div><span>Current outstanding</span><strong>{{ formatCurrency(customer.outstandingBalance) }}</strong></div>
+          <div><span>Credit limit</span><strong>{{ formatCurrency(customer.creditLimit) }}</strong></div>
         </div>
-      </article>
-    </div>
+
+        <div class="transaction-actions">
+          <button type="button" class="button button-debit" (click)="startTransaction('UDHAR_GIVEN')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Give udhar
+          </button>
+          <button type="button" class="button button-payment" (click)="startTransaction('PAYMENT_RECEIVED')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M20 7H4m0 0 4-4M4 7l4 4M4 17h16m0 0-4-4m4 4-4 4"/>
+            </svg>
+            Receive payment
+          </button>
+        </div>
+
+        <form *ngIf="transactionFormType" class="entry-form" (ngSubmit)="saveTransaction()">
+          <div class="entry-form-title">
+            <h3>{{ transactionFormType === 'UDHAR_GIVEN' ? 'Record udhar given' : 'Record payment received' }}</h3>
+            <button type="button" class="icon-button" aria-label="Close transaction form" (click)="cancelTransaction()">×</button>
+          </div>
+          <div class="entry-fields">
+            <label>Amount (₹)
+              <input type="number" name="transactionAmount" min="0.01" step="0.01"
+                     [(ngModel)]="transactionAmount" required placeholder="0.00">
+            </label>
+            <label>Notes
+              <input type="text" name="transactionNotes" maxlength="2000"
+                     [(ngModel)]="transactionNotes"
+                     [placeholder]="transactionFormType === 'UDHAR_GIVEN' ? 'e.g. Loose ration' : 'e.g. Paid via PhonePe'">
+            </label>
+          </div>
+          <p *ngIf="transactionError" class="form-error" role="alert">{{ transactionError }}</p>
+          <div class="form-actions">
+            <button type="button" class="button button-secondary" (click)="cancelTransaction()" [disabled]="savingTransaction">Cancel</button>
+            <button type="submit" class="button button-primary" [disabled]="savingTransaction">
+              {{ savingTransaction ? 'Saving…' : 'Save entry' }}
+            </button>
+          </div>
+        </form>
+
+        <div class="history-heading"><div><h3>Passbook history</h3><p>Newest entries appear first.</p></div></div>
+        <p *ngIf="transactionsLoading" class="empty-state">Loading passbook…</p>
+        <div *ngIf="transactionError && !transactionFormType" class="error-banner" role="alert">
+          <span>{{ transactionError }}</span>
+          <button type="button" class="button button-secondary" (click)="loadTransactions(customer.id)">Retry</button>
+        </div>
+        <div class="table-wrap" *ngIf="!transactionsLoading && !transactionError">
+          <table>
+            <thead>
+              <tr><th>Date &amp; time</th><th>Item / payment notes</th><th>Udhar given (+)</th><th>Payment received (-)</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let transaction of transactions; trackBy: trackTransaction">
+                <td>{{ transaction.transactionDate | date:'dd MMM yyyy, h:mm a' }}</td>
+                <td>{{ transaction.notes || '—' }}</td>
+                <td class="debit-value">
+                  {{ transaction.transactionType === 'UDHAR_GIVEN' ? formatCurrency(transaction.amount) : '—' }}
+                </td>
+                <td class="payment-value">
+                  {{ transaction.transactionType === 'PAYMENT_RECEIVED' ? formatCurrency(transaction.amount) : '—' }}
+                </td>
+              </tr>
+              <tr *ngIf="transactions.length === 0">
+                <td colspan="4" class="empty-table">No passbook entries for this customer yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+      <ng-template #selectCustomerPrompt>
+        <div class="select-prompt">
+          <span class="prompt-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19 8v6m3-3h-6"/>
+            </svg>
+          </span>
+          <h2>Select a customer</h2>
+          <p>Choose a customer from the list to view their transactions and record payments.</p>
+          <button type="button" class="button button-primary" (click)="openCustomerForm()">Add customer</button>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+  <div *ngIf="showCustomerForm" class="modal-backdrop" role="presentation" (click)="closeCustomerForm()">
+    <section class="customer-modal" role="dialog" aria-modal="true" aria-labelledby="newCustomerTitle" (click)="$event.stopPropagation()">
+      <header class="modal-heading">
+        <div><p class="eyebrow">Khata profile</p><h2 id="newCustomerTitle">Add new customer</h2></div>
+        <button type="button" class="icon-button" aria-label="Close dialog" (click)="closeCustomerForm()">×</button>
+      </header>
+      <form (ngSubmit)="saveCustomer()">
+        <div class="modal-fields">
+          <label>Customer name
+            <input type="text" name="newCustomerName" [(ngModel)]="customerForm.customerName" maxlength="255" required>
+          </label>
+          <label>Phone number
+            <input type="tel" name="newCustomerPhone" [(ngModel)]="customerForm.phoneNumber"
+                   inputmode="numeric" maxlength="15" placeholder="10 to 15 digits" required>
+          </label>
+          <label>Address
+            <textarea name="newCustomerAddress" [(ngModel)]="customerForm.address" rows="2" maxlength="2000"></textarea>
+          </label>
+          <label>Credit limit (₹)
+            <input type="number" name="newCustomerLimit" [(ngModel)]="customerForm.creditLimit"
+                   min="0" step="0.01" required>
+          </label>
+        </div>
+        <p *ngIf="customerError" class="form-error" role="alert">{{ customerError }}</p>
+        <footer class="form-actions">
+          <button type="button" class="button button-secondary" (click)="closeCustomerForm()" [disabled]="savingCustomer">Cancel</button>
+          <button type="submit" class="button button-primary" [disabled]="savingCustomer">
+            {{ savingCustomer ? 'Saving…' : 'Create customer' }}
+          </button>
+        </footer>
+      </form>
+    </section>
   </div>
 </section>

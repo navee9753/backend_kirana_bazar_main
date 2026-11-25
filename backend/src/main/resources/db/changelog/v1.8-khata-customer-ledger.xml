@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="v1.8-khata-customer-ledger" author="copilot">
+        <createTable tableName="khata_customers">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone_number" type="VARCHAR(15)"/>
+            <column name="address" type="TEXT"/>
+            <column name="credit_limit" type="NUMERIC(14,2)" defaultValueNumeric="5000.00">
+                <constraints nullable="false"/>
+            </column>
+            <column name="outstanding_balance" type="NUMERIC(14,2)" defaultValueNumeric="0.00">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="khata_customers" columnNames="phone_number"
+                             constraintName="uk_khata_customers_phone_number"/>
+
+        <createTable tableName="khata_transactions">
+            <column name="id" type="SERIAL" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="customer_id" type="INTEGER">
+                <constraints nullable="false" foreignKeyName="fk_khata_transactions_customer"
+                             referencedTableName="khata_customers" referencedColumnNames="id"/>
+            </column>
+            <column name="transaction_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="NUMERIC(14,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notes" type="TEXT"/>
+            <column name="transaction_date" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            ALTER TABLE khata_transactions
+            ADD CONSTRAINT chk_khata_transaction_type
+            CHECK (transaction_type IN ('UDHAR_GIVEN', 'PAYMENT_RECEIVED'));
+            ALTER TABLE khata_transactions
+            ADD CONSTRAINT chk_khata_transaction_amount CHECK (amount &gt; 0);
+        </sql>
+        <createIndex tableName="khata_transactions" indexName="idx_khata_transactions_customer_date">
+            <column name="customer_id"/>
+            <column name="transaction_date"/>
+        </createIndex>
+
+        <sql>
+            WITH legacy AS (
+                SELECT id, customer_name, NULLIF(BTRIM(phone_number), '') AS phone_number,
+                       COALESCE(outstanding_balance, 0) AS balance,
+                       COALESCE(last_updated, CURRENT_TIMESTAMP) AS last_updated,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY NULLIF(BTRIM(phone_number), '') ORDER BY id
+                       ) AS phone_rank
+                FROM khata_ledger
+            )
+            INSERT INTO khata_customers (id, customer_name, phone_number, outstanding_balance, last_updated)
+            SELECT id, customer_name,
+                   CASE WHEN phone_number IS NOT NULL AND phone_rank = 1 THEN phone_number ELSE NULL END,
+                   balance, last_updated
+            FROM legacy;
+
+            INSERT INTO khata_transactions (customer_id, transaction_type, amount, notes, transaction_date)
+            SELECT id,
+                   CASE WHEN outstanding_balance &gt; 0 THEN 'UDHAR_GIVEN' ELSE 'PAYMENT_RECEIVED' END,
+                   ABS(outstanding_balance),
+                   'Opening balance migrated from legacy khata',
+                   last_updated
+            FROM khata_customers
+            WHERE outstanding_balance &lt;&gt; 0;
+
+            SELECT setval(
+                pg_get_serial_sequence('khata_customers', 'id'),
+                COALESCE((SELECT MAX(id) FROM khata_customers), 1),
+                EXISTS (SELECT 1 FROM khata_customers)
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>

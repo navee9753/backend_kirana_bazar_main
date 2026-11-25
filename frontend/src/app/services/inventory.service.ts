@@ -24,7 +24,7 @@ export interface Product {
 export interface Khata {
   id?: number;
   customerName: string;
-  phoneNumber: string;
+  phoneNumber: string | null;
   outstandingBalance: number;
   lastUpdated?: string;
 }
@@ -298,7 +298,7 @@ export class InventoryService {
   }
 
   getKhata(): Observable<Khata[]> {
-    return this.http.get<Khata[]>(this.khataUrl, { headers: this.authHeaders() });
+    return this.http.get<Khata[]>(`${this.khataUrl}/customers`, { headers: this.authHeaders() });
   }
 
   getSuppliers(): Observable<Supplier[]> {

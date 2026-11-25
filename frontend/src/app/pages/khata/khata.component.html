@@ -1,4 +1,4 @@
-<section class="khata-page">
+<section class="khata-page" [class.customer-selected]="selectedCustomer !== null">
   <header class="page-header">
     <div>
       <p class="eyebrow">Customer accounts</p>
@@ -13,30 +13,30 @@
     </button>
   </header>
 
-  <div class="kpi-grid">
-    <article class="kpi-card">
+  <div class="kpi-grid grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+    <article class="kpi-card p-3.5 sm:p-5">
       <span class="kpi-icon rose-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M7 12h4"/>
         </svg>
       </span>
-      <div><p>Total market udhar owed</p><strong>{{ formatCurrency(totalOutstanding) }}</strong></div>
+      <div><p>Total market udhar owed</p><strong class="text-lg sm:text-2xl font-extrabold">{{ formatCurrency(totalOutstanding) }}</strong></div>
     </article>
-    <article class="kpi-card">
+    <article class="kpi-card p-3.5 sm:p-5">
       <span class="kpi-icon emerald-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6m3-3h-6"/>
         </svg>
       </span>
-      <div><p>Active customers</p><strong>{{ customers.length }}</strong></div>
+      <div><p>Active customers</p><strong class="text-lg sm:text-2xl font-extrabold">{{ customers.length }}</strong></div>
     </article>
-    <article class="kpi-card">
+    <article class="kpi-card p-3.5 sm:p-5">
       <span class="kpi-icon amber-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4m0 3h.01"/>
         </svg>
       </span>
-      <div><p>Over credit limit</p><strong>{{ customersOverLimit }}</strong></div>
+      <div><p>Over credit limit</p><strong class="text-lg sm:text-2xl font-extrabold">{{ customersOverLimit }}</strong></div>
     </article>
   </div>
 
@@ -46,7 +46,7 @@
   </div>
 
   <div class="workspace-grid">
-    <section class="panel customer-panel" aria-label="Khata customers">
+    <section class="panel customer-panel" [class.mobile-hidden]="selectedCustomer !== null" aria-label="Khata customers">
       <header class="panel-heading">
         <div><h2>Customers</h2><p>Select a customer to open their passbook.</p></div>
         <span class="count-pill">{{ filteredCustomers.length }}</span>
@@ -94,8 +94,14 @@
       </div>
     </section>
 
-    <section class="panel passbook-panel" aria-label="Customer passbook">
+    <section class="panel passbook-panel" [class.mobile-hidden]="selectedCustomer === null" aria-label="Customer passbook">
       <ng-container *ngIf="selectedCustomer as customer; else selectCustomerPrompt">
+        <button type="button" class="mobile-back-button" (click)="selectedCustomer = null; transactions = []; transactionFormType = null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m15 18-6-6 6-6M9 12h12"/>
+          </svg>
+          Back to Customers
+        </button>
         <header class="passbook-header">
           <div class="profile-heading">
             <span class="avatar large-avatar">{{ initials(customer.customerName) }}</span>
@@ -171,7 +177,7 @@
           <span>{{ transactionError }}</span>
           <button type="button" class="button button-secondary" (click)="loadTransactions(customer.id)">Retry</button>
         </div>
-        <div class="table-wrap" *ngIf="!transactionsLoading && !transactionError">
+        <div class="table-wrap hidden md:block" *ngIf="!transactionsLoading && !transactionError">
           <table>
             <thead>
               <tr><th>Date &amp; time</th><th>Item / payment notes</th><th>Udhar given (+)</th><th>Payment received (-)</th></tr>
@@ -192,6 +198,23 @@
               </tr>
             </tbody>
           </table>
+        </div>
+        <div class="transaction-mobile-list md:hidden" *ngIf="!transactionsLoading && !transactionError">
+          <article class="transaction-mobile-card" *ngFor="let transaction of transactions; trackBy: trackTransaction">
+            <div class="transaction-mobile-top">
+              <strong>{{ transaction.transactionDate | date:'dd MMM yyyy, h:mm a' }}</strong>
+              <span>{{ transaction.notes || 'Khata entry' }}</span>
+            </div>
+            <div class="transaction-mobile-amounts">
+              <span *ngIf="transaction.transactionType === 'UDHAR_GIVEN'" class="debit-value">
+                <small>Udhar given (+)</small>{{ formatCurrency(transaction.amount) }}
+              </span>
+              <span *ngIf="transaction.transactionType === 'PAYMENT_RECEIVED'" class="payment-value">
+                <small>Payment received (-)</small>{{ formatCurrency(transaction.amount) }}
+              </span>
+            </div>
+          </article>
+          <p *ngIf="transactions.length === 0" class="empty-state">No passbook entries for this customer yet.</p>
         </div>
       </ng-container>
       <ng-template #selectCustomerPrompt>

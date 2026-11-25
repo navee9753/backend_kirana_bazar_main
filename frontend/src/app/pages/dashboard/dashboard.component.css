@@ -1110,6 +1110,59 @@
   }
 }
 
+.restock-mobile-list {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .restock-table-scroll {
+    display: none;
+  }
+
+  .restock-mobile-list {
+    display: grid;
+  }
+
+  .restock-mobile-card {
+    display: grid;
+    gap: 11px;
+    padding: 12px 14px;
+  }
+
+  .restock-mobile-product {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .restock-mobile-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+
+  .restock-mobile-details .stock-value {
+    margin-right: auto;
+  }
+
+  .restock-mobile-details .restock-button {
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 0.72rem;
+  }
+
+  .kpi-card {
+    padding: 14px;
+  }
+
+  .kpi-value {
+    font-size: clamp(1.05rem, 4.3vw, 1.45rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

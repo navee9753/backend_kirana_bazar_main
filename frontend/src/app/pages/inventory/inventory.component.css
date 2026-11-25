@@ -907,7 +907,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .inventory-header {
     flex-direction: column;
   }
@@ -942,53 +942,84 @@
     align-items: flex-start;
   }
 
-  .mobile-item-heading .item-cell {
+  .mobile-item-product {
+    display: flex;
     min-width: 0;
   }
 
-  .mobile-item-meta,
-  .mobile-item-prices {
+  .mobile-item-product .item-copy {
+    gap: 5px;
+  }
+
+  .mobile-item-product .item-copy strong {
+    max-width: 210px;
+    font-size: 0.88rem;
+  }
+
+  .mobile-item-product .category-tag {
+    width: fit-content;
+    border-radius: 999px;
+    background: #f1f5f9;
+    padding: 3px 7px;
+    font-size: 0.64rem;
+  }
+
+  .mobile-item-bottom {
     display: flex;
-    flex-wrap: wrap;
-    gap: 7px 12px;
-    margin-top: 12px;
-    color: #64748b;
-    font-size: 0.73rem;
-  }
-
-  .mobile-item-meta span + span {
-    padding-left: 12px;
-    border-left: 1px solid #e2e8f0;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  }
-
-  .mobile-item-stock {
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     margin-top: 13px;
     border-top: 1px solid #f1f5f9;
-    padding-top: 12px;
-    color: #64748b;
-    font-size: 0.75rem;
-  }
-
-  .mobile-item-stock .stock-control > strong {
-    font-size: 0.86rem;
+    padding-top: 11px;
   }
 
   .mobile-item-prices {
-    justify-content: space-between;
+    display: grid;
+    flex: 0 1 auto;
+    gap: 5px;
+    color: #64748b;
+    font-size: 0.7rem;
   }
 
   .mobile-item-prices strong {
-    margin-left: 4px;
+    margin-left: 3px;
     color: #0f172a;
+    font-size: 0.72rem;
+  }
+
+  .mobile-item-controls {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mobile-item-controls .stock-control {
+    gap: 4px;
+  }
+
+  .mobile-item-controls .stock-adjust {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .mobile-item-controls .stock-control > strong {
+    min-width: 28px;
+    font-size: 0.76rem;
+  }
+
+  .mobile-edit-button {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
   }
 
   .mobile-item-actions {
-    justify-content: flex-start;
+    justify-content: flex-end;
     gap: 8px;
-    margin-top: 12px;
-    border-top: 1px solid #f1f5f9;
-    padding-top: 10px;
+    margin-top: 8px;
   }
 
   .mobile-action {

@@ -496,6 +496,47 @@
   border-radius: 13px;
 }
 
+.transaction-mobile-list {
+  display: none;
+}
+
+.transaction-mobile-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  background: #fff;
+  padding: 12px;
+}
+
+.transaction-mobile-top {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.transaction-mobile-top strong {
+  color: #334155;
+  font-size: 0.75rem;
+}
+
+.transaction-mobile-top span {
+  overflow-wrap: anywhere;
+  color: #64748b;
+  font-size: 0.83rem;
+}
+
+.transaction-mobile-amounts span {
+  display: grid;
+  gap: 3px;
+  font-size: 0.9rem;
+}
+
+.transaction-mobile-amounts small {
+  color: #64748b;
+  font-size: 0.69rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -656,28 +697,68 @@ tbody tr:last-child td {
   cursor: pointer;
 }
 
-@media (max-width: 1050px) {
+ .mobile-back-button {
+  display: none;
+}
+
+@media (max-width: 1023px) {
   .workspace-grid {
-    grid-template-columns: minmax(280px, 4fr) minmax(0, 6fr);
+    grid-template-columns: 1fr;
     gap: 14px;
   }
 
   .panel {
     padding: 16px;
   }
-}
 
-@media (max-width: 780px) {
-  .workspace-grid {
-    grid-template-columns: 1fr;
+  .khata-page.customer-selected > .page-header,
+  .khata-page.customer-selected > .kpi-grid {
+    display: none;
+  }
+
+  .customer-panel.mobile-hidden,
+  .passbook-panel.mobile-hidden {
+    display: none;
+  }
+
+  .passbook-panel:not(.mobile-hidden) {
+    min-height: calc(100dvh - 80px);
+    align-content: start;
+    border: 0;
+    border-radius: 0;
+    padding: 14px 12px;
+    box-shadow: none;
+  }
+
+  .mobile-back-button {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 42px;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid #cbd5e1;
+    border-radius: 11px;
+    background: #fff;
+    padding: 8px 11px;
+    color: #334155;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .mobile-back-button svg {
+    width: 18px;
+    height: 18px;
   }
 
   .customer-list {
-    max-height: 420px;
+    max-height: calc(100dvh - 260px);
+    overflow-y: auto;
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 767px) {
   .khata-page {
     gap: 15px;
     padding: 12px;
@@ -699,12 +780,40 @@ tbody tr:last-child td {
   }
 
   .kpi-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
   .kpi-card {
-    padding: 13px;
+    min-height: 90px;
+    gap: 9px;
+    padding: 14px;
+  }
+
+  .table-wrap {
+    display: none;
+  }
+
+  .transaction-mobile-list {
+    display: grid;
+    gap: 9px;
+    min-width: 0;
+  }
+
+  .kpi-card > div {
+    min-width: 0;
+  }
+
+  .kpi-card p {
+    font-size: 0.7rem;
+  }
+
+  .kpi-card strong {
+    display: block;
+    overflow: hidden;
+    font-size: clamp(1rem, 4.5vw, 1.3rem);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .passbook-header {
@@ -727,6 +836,28 @@ tbody tr:last-child td {
   .error-banner {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 380px) {
+  .kpi-grid {
+    gap: 8px;
+  }
+
+  .kpi-card {
+    gap: 7px;
+    padding: 11px;
+  }
+
+  .kpi-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .balance-badge {
+    max-width: 88px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 

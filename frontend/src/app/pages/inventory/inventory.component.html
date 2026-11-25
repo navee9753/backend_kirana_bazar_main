@@ -111,7 +111,7 @@
       <span class="catalog-count">{{ inventory.length }} total</span>
     </div>
 
-    <div class="table-scroll">
+    <div class="table-scroll hidden md:block">
       <table class="inventory-table">
         <thead>
           <tr>
@@ -218,14 +218,13 @@
     </div>
   </section>
 
-  <section *ngIf="!loading && !loadError" class="mobile-inventory" aria-label="Inventory items">
+  <section *ngIf="!loading && !loadError" class="mobile-inventory md:hidden divide-y divide-slate-100" aria-label="Inventory items">
     <article *ngFor="let item of filteredInventory; trackBy: trackById" class="mobile-item-card">
       <header class="mobile-item-heading">
-        <div class="item-cell">
-          <span class="item-avatar">{{ item.name.charAt(0) || 'I' }}</span>
+        <div class="mobile-item-product">
           <span class="item-copy">
             <strong>{{ item.name }}</strong>
-            <small>{{ item.brand || item.category || 'No brand' }}</small>
+            <span class="category-tag">{{ item.category || 'Uncategorized' }}</span>
           </span>
         </div>
         <span class="status-badge" [ngClass]="{
@@ -233,34 +232,30 @@
           'status-low': statusFor(item) === 'Low Stock',
           'status-in': statusFor(item) === 'In Stock'
         }">
-          <span class="status-dot"></span>{{ statusFor(item) }}
+          <span class="status-dot"></span>{{ statusFor(item) === 'Out of Stock' ? 'Out' : (statusFor(item) === 'Low Stock' ? 'Low' : 'In Stock') }}
         </span>
       </header>
-      <div class="mobile-item-meta">
-        <span>{{ item.category || 'Uncategorized' }}</span>
-        <span>{{ item.barcode || item.sku || 'No barcode / SKU' }}</span>
-      </div>
-      <div class="mobile-item-stock">
-        <span>Current stock</span>
-        <div class="stock-control" [attr.aria-label]="'Stock for ' + item.name">
-          <button type="button" class="stock-adjust" [disabled]="savingStockId !== null || item.stock <= 0" [attr.aria-label]="'Decrease ' + item.name + ' stock by one'" (click)="adjustStock(item, -1)">
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M5 12h14" /></svg>
-          </button>
-          <strong>{{ item.stock | number:'1.0-3' }}<small *ngIf="item.isLooseItem"> Kg</small></strong>
-          <button type="button" class="stock-adjust" [disabled]="savingStockId !== null" [attr.aria-label]="'Increase ' + item.name + ' stock by one'" (click)="adjustStock(item, 1)">
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M12 5v14m-7-7h14" /></svg>
+      <div class="mobile-item-bottom">
+        <div class="mobile-item-prices">
+          <span>MRP <strong>{{ item.mrp | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></span>
+          <span>Buy <strong>{{ item.purchase | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></span>
+        </div>
+        <div class="mobile-item-controls">
+          <div class="stock-control" [attr.aria-label]="'Stock for ' + item.name">
+            <button type="button" class="stock-adjust" [disabled]="savingStockId !== null || item.stock <= 0" [attr.aria-label]="'Decrease ' + item.name + ' stock by one'" (click)="adjustStock(item, -1)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M5 12h14" /></svg>
+            </button>
+            <strong>{{ item.stock | number:'1.0-3' }}<small *ngIf="item.isLooseItem"> Kg</small></strong>
+            <button type="button" class="stock-adjust" [disabled]="savingStockId !== null" [attr.aria-label]="'Increase ' + item.name + ' stock by one'" (click)="adjustStock(item, 1)">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M12 5v14m-7-7h14" /></svg>
+            </button>
+          </div>
+          <button type="button" class="icon-button mobile-edit-button" [attr.aria-label]="'Edit ' + item.name" (click)="editItem(item)">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m15 5 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15l-.8 5Z" /></svg>
           </button>
         </div>
       </div>
-      <div class="mobile-item-prices">
-        <span>Buying <strong>{{ item.purchase | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></span>
-        <span>MRP <strong>{{ item.mrp | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></span>
-      </div>
       <footer class="mobile-item-actions">
-        <button type="button" class="mobile-action" (click)="editItem(item)">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m15 5 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15l-.8 5Z" /></svg>
-          Edit
-        </button>
         <button type="button" class="mobile-action danger-text" [disabled]="deletingId === item.id" (click)="deleteItem(item)">
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16m-10 4v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3" /></svg>
           Delete

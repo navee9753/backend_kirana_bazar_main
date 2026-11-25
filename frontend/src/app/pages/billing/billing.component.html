@@ -91,7 +91,7 @@
       </p>
     </section>
 
-    <aside class="basket-panel" aria-label="Current bill">
+    <aside id="billing-checkout" class="basket-panel" aria-label="Current bill">
       <div class="basket-heading">
         <div>
           <p class="eyebrow">Current transaction</p>
@@ -101,7 +101,7 @@
       </div>
 
       <div *ngIf="cart.length; else emptyBasket" class="basket-content">
-        <div class="basket-table-wrap">
+        <div class="basket-table-wrap hidden md:block">
           <table class="basket-table">
             <thead>
               <tr>
@@ -152,6 +152,32 @@
             </tbody>
           </table>
         </div>
+        <div class="mobile-cart-list md:hidden">
+          <article *ngFor="let line of cart" class="mobile-cart-row">
+            <div class="mobile-cart-heading">
+              <span>
+                <strong>{{ line.product.name }}</strong>
+                <small>{{ formatCurrency(line.unitPrice) }}<span *ngIf="line.product.isLooseItem"> / Kg</span></small>
+              </span>
+              <strong>{{ formatCurrency(lineTotal(line)) }}</strong>
+            </div>
+            <div class="mobile-cart-controls">
+              <span *ngIf="line.product.isLooseItem; else mobileUnitQuantity" class="mobile-loose-quantity">
+                {{ formatWeight(line.quantity) }}
+                <button type="button" class="remove-line" [disabled]="settling"
+                        [attr.aria-label]="'Remove ' + line.product.name + ' from bill'"
+                        (click)="removeFromCart(line)">×</button>
+              </span>
+              <ng-template #mobileUnitQuantity>
+                <div class="quantity-control" [attr.aria-label]="'Quantity for ' + line.product.name">
+                  <button type="button" [disabled]="settling" [attr.aria-label]="'Decrease ' + line.product.name + ' quantity'" (click)="changeQuantity(line, -1)">−</button>
+                  <span>{{ line.quantity }}</span>
+                  <button type="button" [disabled]="settling" [attr.aria-label]="'Increase ' + line.product.name + ' quantity'" (click)="changeQuantity(line, 1)">+</button>
+                </div>
+              </ng-template>
+            </div>
+          </article>
+        </div>
 
         <section class="checkout-math" aria-label="Checkout totals">
           <div class="total-line">
@@ -181,6 +207,13 @@
             <span>Net payable</span>
             <strong>{{ formatCurrency(netPayable) }}</strong>
           </div>
+
+          <a *ngIf="cart.length" href="#billing-checkout"
+             class="mobile-checkout-bar lg:hidden fixed bottom-16 inset-x-3 z-40 bg-emerald-600 text-white rounded-xl p-3 shadow-lg">
+            <span class="mobile-checkout-count">{{ cart.length }} item{{ cart.length === 1 ? '' : 's' }}</span>
+            <span class="mobile-checkout-total">{{ formatCurrency(netPayable) }}</span>
+            <span class="mobile-checkout-action">Checkout <span aria-hidden="true">→</span></span>
+          </a>
 
           <div
             *ngIf="calculatorProduct as looseProduct"

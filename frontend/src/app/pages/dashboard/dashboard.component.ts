@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { forkJoin, of, Subscription } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
-import { DashboardSummary, InventoryService, Khata, Product } from '../../services/inventory.service';
+import { InventoryService, Khata, Product, Supplier } from '../../services/inventory.service';
 import { InactivitySessionService } from '../../services/inactivity-session.service';
 
 interface FestivalSeason {
@@ -11,7 +12,6 @@ interface FestivalSeason {
   month: number;
   day: number;
   categories: string;
-  approximate: boolean;
 }
 
 interface FestivalAlert extends FestivalSeason {
@@ -20,13 +20,13 @@ interface FestivalAlert extends FestivalSeason {
 }
 
 const FESTIVAL_SEASONS: FestivalSeason[] = [
-  { name: 'Makar Sankranti', month: 1, day: 14, categories: 'Jaggery, sesame, ghee and festive staples', approximate: false },
-  { name: 'Holi season', month: 3, day: 14, categories: 'Colours, snacks, sweets and beverages', approximate: true },
-  { name: 'Baisakhi', month: 4, day: 13, categories: 'Grains, sweets and celebration essentials', approximate: false },
-  { name: 'Raksha Bandhan season', month: 8, day: 15, categories: 'Sweets, dry fruits and gift essentials', approximate: true },
-  { name: 'Ganesh Chaturthi season', month: 9, day: 7, categories: 'Puja essentials, sweets and offerings', approximate: true },
-  { name: 'Diwali procurement season', month: 11, day: 1, categories: 'Oil, diyas, sweets, dry fruits and gift packs', approximate: true },
-  { name: 'Christmas', month: 12, day: 25, categories: 'Baking supplies, chocolates and gifting', approximate: false }
+  { name: 'Makar Sankranti', month: 1, day: 14, categories: 'Jaggery, sesame, ghee and festive staples' },
+  { name: 'Holi season', month: 3, day: 14, categories: 'Colours, snacks, sweets and beverages' },
+  { name: 'Baisakhi', month: 4, day: 13, categories: 'Grains, sweets and celebration essentials' },
+  { name: 'Raksha Bandhan season', month: 8, day: 15, categories: 'Sweets, dry fruits and gift essentials' },
+  { name: 'Ganesh Chaturthi season', month: 9, day: 7, categories: 'Puja essentials, sweets and offerings' },
+  { name: 'Diwali procurement season', month: 11, day: 1, categories: 'Oil, diyas, sweets, dry fruits and gift packs' },
+  { name: 'Christmas', month: 12, day: 25, categories: 'Baking supplies, chocolates and gifting' }
 ];
 
 @Component({
@@ -39,17 +39,23 @@ const FESTIVAL_SEASONS: FestivalSeason[] = [
 export class DashboardPageComponent implements OnInit, OnDestroy {
   products: Product[] = [];
   khataEntries: Khata[] = [];
-  inventoryValue = 0;
-  totalKhataOutstanding = 0;
+  suppliers: Supplier[] = [];
   loadErrors: string[] = [];
-  festivalAlert: FestivalAlert = this.getUpcomingFestival();
-  remainingSeconds = 600;
-  csvHeaders: string[] = [];
-  csvPreview: string[][] = [];
-  csvMessage = '';
+  loading = true;
+  restockingProductId: number | null = null;
+  restockError = '';
+  exportError = '';
+  exportMessage = '';
+  readonly festivalAlert: FestivalAlert = this.getUpcomingFestival();
+  readonly recommendations = [
+    'Mustard Oil (Bulk)',
+    'Desi Ghee',
+    'Sugar & Jaggery',
+    'Dry Fruits',
+    'Besan & Maida'
+  ];
 
   private readonly subscriptions = new Subscription();
-  private csvReader?: FileReader;
 
   constructor(
     private readonly inventoryService: InventoryService,
@@ -58,170 +64,178 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.inactivitySession.start();
-    this.subscriptions.add(
-      this.inactivitySession.remainingSeconds$.subscribe((seconds) => {
-        this.remainingSeconds = seconds;
-      })
-    );
-
-    this.subscriptions.add(this.inventoryService.getDashboardSummary().subscribe({
-      next: (summary: DashboardSummary) => {
-        this.inventoryValue = summary.inventoryValue ?? 0;
-        this.totalKhataOutstanding = summary.totalKhataOutstanding ?? 0;
-      },
-      error: () => this.loadErrors.push('Dashboard totals could not be loaded.')
-    }));
-
-    this.subscriptions.add(this.inventoryService.getProducts().subscribe({
-      next: (products: Product[]) => {
-        this.products = products;
-      },
-      error: () => this.loadErrors.push('Inventory alerts could not be loaded.')
-    }));
-
-    this.subscriptions.add(this.inventoryService.getKhata().subscribe({
-      next: (entries: Khata[]) => {
-        this.khataEntries = entries;
-      },
-      error: () => this.loadErrors.push('Khata reminders could not be loaded.')
-    }));
+    this.loadDashboard();
   }
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
-    this.csvReader?.abort();
   }
 
-  get stats(): Array<{ label: string; value: string; tone: string }> {
-    return [
-      { label: 'Total Assets', value: this.formatCurrency(this.inventoryValue), tone: 'primary' },
-      { label: 'Total Market Udhar', value: this.formatCurrency(this.totalKhataOutstanding), tone: 'success' },
-      { label: 'Mandi Alerts', value: '0', tone: 'neutral' },
-      { label: 'Out of Stock', value: String(this.outOfStockCount), tone: 'warning' }
-    ];
+  get inventoryValue(): number {
+    return this.products.reduce(
+      (total, product) => total + Number(product.currentStock ?? 0) * Number(product.purchasePrice ?? 0),
+      0
+    );
+  }
+
+  get totalKhataOutstanding(): number {
+    return this.khataEntries.reduce((total, entry) => total + Number(entry.outstandingBalance ?? 0), 0);
+  }
+
+  get totalSupplierPayables(): number {
+    return this.suppliers.reduce((total, supplier) => total + Number(supplier.pendingPayable ?? 0), 0);
+  }
+
+  get lowStockCount(): number {
+    return this.products.filter((product) =>
+      Number(product.currentStock ?? 0) <= Number(product.minStockAlert ?? 0)
+    ).length;
   }
 
   get outOfStockCount(): number {
-    return this.products.filter((product) => Number(product.currentStock) <= 0).length;
+    return this.products.filter((product) => Number(product.currentStock ?? 0) <= 0).length;
   }
 
   get lowStockProducts(): Product[] {
     return this.products
-      .filter((product) => Number(product.currentStock) > 0 && Number(product.currentStock) <= Number(product.minStockAlert))
-      .sort((first, second) => Number(first.currentStock) - Number(second.currentStock));
+      .filter((product) =>
+        Number(product.currentStock ?? 0) <= Number(product.minStockAlert ?? 0)
+      )
+      .sort((first, second) => {
+        const firstStock = Number(first.currentStock ?? 0);
+        const secondStock = Number(second.currentStock ?? 0);
+        if (firstStock <= 0 && secondStock > 0) {
+          return -1;
+        }
+        if (secondStock <= 0 && firstStock > 0) {
+          return 1;
+        }
+        return firstStock - secondStock;
+      });
   }
 
-  get activeKhataEntries(): Khata[] {
+  get topKhataEntries(): Khata[] {
     return this.khataEntries
-      .filter((entry) => Number(entry.outstandingBalance) > 0)
-      .sort((first, second) => Number(second.outstandingBalance) - Number(first.outstandingBalance));
+      .filter((entry) => Number(entry.outstandingBalance ?? 0) > 0)
+      .sort((first, second) =>
+        Number(second.outstandingBalance ?? 0) - Number(first.outstandingBalance ?? 0)
+      )
+      .slice(0, 5);
   }
 
-  get timerLabel(): string {
-    const minutes = Math.floor(this.remainingSeconds / 60);
-    const seconds = this.remainingSeconds % 60;
-    return `${minutes}:${String(seconds).padStart(2, '0')}`;
+  formatCurrency(value: number): string {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(Number.isFinite(value) ? value : 0);
   }
 
-  get timerProgress(): number {
-    return Math.max(0, Math.min(100, (this.remainingSeconds / 600) * 100));
+  formatStock(product: Product): string {
+    const stock = Number(product.currentStock ?? 0);
+    return new Intl.NumberFormat('en-IN', {
+      maximumFractionDigits: 3
+    }).format(Number.isFinite(stock) ? stock : 0);
+  }
+
+  isOutOfStock(product: Product): boolean {
+    return Number(product.currentStock ?? 0) <= 0;
   }
 
   whatsappLink(entry: Khata): string | null {
     const digits = (entry.phoneNumber ?? '').replace(/\D/g, '');
-    const phone = digits.length === 10 ? `91${digits}` : digits;
-    if (phone.length < 11 || phone.length > 15) {
+    const phone = digits.length === 10
+      ? `91${digits}`
+      : digits.length === 12 && digits.startsWith('91')
+        ? digits
+        : '';
+    if (!phone) {
       return null;
     }
 
-    const message = `Namaste ${entry.customerName}, a friendly reminder that your khata balance is ${this.formatCurrency(entry.outstandingBalance)}. Please contact Naveen Kirana Bazar for any questions.`;
+    const message = `Namaste ${entry.customerName}, this is a polite reminder from Naveen Kirana Bazar regarding your pending khata balance of ${this.formatCurrency(Number(entry.outstandingBalance ?? 0))}. Please let us know if you have any questions. Thank you.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
 
-  onCsvSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    this.csvHeaders = [];
-    this.csvPreview = [];
-    this.csvMessage = '';
-    if (!file) {
+  restock(product: Product): void {
+    if (product.id == null || this.restockingProductId != null) {
       return;
     }
 
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      this.csvMessage = 'Choose a .csv file to preview.';
-      input.value = '';
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      this.csvMessage = 'CSV preview is limited to files smaller than 2 MB.';
-      input.value = '';
-      return;
-    }
+    const nextStock = Math.round((Number(product.currentStock ?? 0) + 10 + Number.EPSILON) * 1000) / 1000;
+    const updatedProduct: Product = {
+      ...product,
+      currentStock: nextStock
+    };
+    this.restockingProductId = product.id;
+    this.restockError = '';
 
-    this.csvReader?.abort();
-    this.csvReader = new FileReader();
-    this.csvReader.onload = () => {
-      try {
-        const rows = this.parseCsv(String(this.csvReader?.result ?? ''));
-        if (rows.length === 0) {
-          this.csvMessage = 'The selected CSV has no rows to preview.';
-          return;
-        }
-        this.csvHeaders = rows[0].map((header, index) => index === 0 ? header.replace(/^\uFEFF/, '') : header);
-        this.csvPreview = rows.slice(1, 6);
-        this.csvMessage = `Previewing ${Math.max(0, rows.length - 1)} data row(s). Import is not available here.`;
-      } catch (error) {
-        this.csvMessage = error instanceof Error ? error.message : 'The CSV file could not be read.';
+    this.subscriptions.add(this.inventoryService.updateProduct(product.id, updatedProduct).subscribe({
+      next: () => {
+        this.restockingProductId = null;
+        this.loadDashboard();
+      },
+      error: () => {
+        this.restockingProductId = null;
+        this.restockError = `Could not restock ${product.name}. Check the server connection and try again.`;
       }
-    };
-    this.csvReader.onerror = () => {
-      this.csvMessage = 'The selected CSV file could not be read.';
-    };
-    this.csvReader.readAsText(file);
+    }));
   }
 
-  private parseCsv(source: string): string[][] {
-    const rows: string[][] = [];
-    let row: string[] = [];
-    let cell = '';
-    let inQuotes = false;
-
-    for (let index = 0; index < source.length; index += 1) {
-      const character = source[index];
-      if (character === '"') {
-        if (inQuotes && source[index + 1] === '"') {
-          cell += '"';
-          index += 1;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (character === ',' && !inQuotes) {
-        row.push(cell);
-        cell = '';
-      } else if ((character === '\n' || character === '\r') && !inQuotes) {
-        row.push(cell);
-        if (row.some((value) => value.length > 0)) {
-          rows.push(row);
-        }
-        row = [];
-        cell = '';
-        if (character === '\r' && source[index + 1] === '\n') {
-          index += 1;
-        }
-      } else {
-        cell += character;
+  exportInventory(): void {
+    this.exportError = '';
+    this.exportMessage = '';
+    this.subscriptions.add(this.inventoryService.exportProducts().subscribe({
+      next: (file) => {
+        const url = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'kirana-inventory.csv';
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+        this.exportMessage = 'Inventory backup downloaded.';
+      },
+      error: () => {
+        this.exportError = 'Could not download the inventory backup. Please try again.';
       }
-    }
+    }));
+  }
 
-    if (inQuotes) {
-      throw new Error('The CSV contains an unclosed quoted field.');
-    }
-    row.push(cell);
-    if (row.some((value) => value.length > 0)) {
-      rows.push(row);
-    }
-    return rows;
+  private loadDashboard(): void {
+    this.loading = true;
+    this.loadErrors = [];
+    this.subscriptions.add(forkJoin({
+      products: this.inventoryService.getProducts().pipe(
+        catchError(() => {
+          this.loadErrors.push('Inventory data could not be loaded.');
+          return of([] as Product[]);
+        })
+      ),
+      khata: this.inventoryService.getKhata().pipe(
+        catchError(() => {
+          this.loadErrors.push('Khata balances could not be loaded.');
+          return of([] as Khata[]);
+        })
+      ),
+      suppliers: this.inventoryService.getSuppliers().pipe(
+        catchError(() => {
+          this.loadErrors.push('Supplier payables could not be loaded.');
+          return of([] as Supplier[]);
+        })
+      )
+    }).subscribe({
+      next: ({ products, khata, suppliers }) => {
+        this.products = products;
+        this.khataEntries = khata;
+        this.suppliers = suppliers;
+        this.loading = false;
+      },
+      error: () => {
+        this.loadErrors = ['Dashboard data could not be loaded. Please try again.'];
+        this.loading = false;
+      }
+    }));
   }
 
   private getUpcomingFestival(): FestivalAlert {
@@ -241,13 +255,5 @@ export class DashboardPageComponent implements OnInit, OnDestroy {
       daysAway: closest.daysAway,
       state: closest.daysAway <= 7 ? 'urgent' : closest.daysAway <= 30 ? 'upcoming' : 'seasonal'
     };
-  }
-
-  private formatCurrency(value: number): string {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(value ?? 0);
   }
 }

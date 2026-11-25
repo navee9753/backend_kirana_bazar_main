@@ -1,193 +1,311 @@
-<section class="page-shell">
-  <header class="page-head">
+<main class="dashboard-page" aria-labelledby="dashboard-title">
+  <header class="dashboard-header">
     <div>
-      <p class="eyebrow">Daily overview</p>
-      <h2>NAVEEN KIRANA BAZAR</h2>
+      <p class="dashboard-eyebrow">NAVEEN KIRANA BAZAR · DAILY OVERVIEW</p>
+      <h1 id="dashboard-title">Business dashboard</h1>
+      <p class="dashboard-subtitle">A clear view of your inventory, collections, and daily priorities.</p>
     </div>
-    <a class="action-button" routerLink="/billing">
-      <svg aria-hidden="true" class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
-      </svg>
-      Add sale
-    </a>
+    <div class="live-status">
+      <span class="live-dot" aria-hidden="true"></span>
+      Live business summary
+    </div>
   </header>
 
-  <div *ngIf="loadErrors.length" class="load-errors" role="status">
-    <p *ngFor="let error of loadErrors">{{ error }}</p>
-  </div>
-
-  <section class="dashboard-row metric-row" aria-label="Business metrics">
-    <article class="stat-card" *ngFor="let stat of stats" [ngClass]="stat.tone">
-      <div class="stat-label">
-        <span>{{ stat.label }}</span>
-        <span class="stat-icon" aria-hidden="true" [ngSwitch]="stat.label">
-          <svg *ngSwitchCase="'Total Assets'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M5 6h14a2 2 0 0 1 2 2v10H3V8a2 2 0 0 1 2-2Zm4 8h2" />
-          </svg>
-          <svg *ngSwitchCase="'Total Market Udhar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-2 0-3 .8-3 2s1 2 3 2 3 .8 3 2-1 2-3 2m0-10V6m0 12v-2m9-4a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-          </svg>
-          <svg *ngSwitchCase="'Mandi Alerts'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-8 12h4" />
-          </svg>
-          <svg *ngSwitchCase="'Out of Stock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16v13H4zM3 7l2-4h14l2 4M9 12l6 6m0-6-6 6" />
+  <section class="kpi-grid" aria-label="Financial and stock summary">
+    <article class="kpi-card">
+      <div class="kpi-topline">
+        <span class="kpi-icon kpi-emerald" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9ZM4.5 7.8 12 12l7.5-4.2M12 12v8.5" />
           </svg>
         </span>
+        <span class="kpi-caption">Inventory</span>
       </div>
-      <strong>{{ stat.value }}</strong>
-      <small *ngIf="stat.label === 'Mandi Alerts'">No mandi alert source configured</small>
+      <p class="kpi-label">Total Inventory Value</p>
+      <strong class="kpi-value">{{ loading ? '—' : (inventoryValue | currency:'INR':'symbol':'1.2-2':'en-IN') }}</strong>
+      <p class="kpi-footnote">Valued at purchase price</p>
+    </article>
+
+    <article class="kpi-card">
+      <div class="kpi-topline">
+        <span class="kpi-icon kpi-amber" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-2 0-3 .8-3 2s1 2 3 2 3 .8 3 2-1 2-3 2m0-10V5m0 14v-3m9-4a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </span>
+        <span class="kpi-caption">Customer credit</span>
+      </div>
+      <p class="kpi-label">Pending Market Udhar</p>
+      <strong class="kpi-value">{{ loading ? '—' : (totalKhataOutstanding | currency:'INR':'symbol':'1.2-2':'en-IN') }}</strong>
+      <p class="kpi-footnote">Outstanding khata balances</p>
+    </article>
+
+    <article class="kpi-card">
+      <div class="kpi-topline">
+        <span class="kpi-icon kpi-rose" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8h18v12H3zM3 8l2-4h14l2 4m-12 5h8" />
+          </svg>
+        </span>
+        <span class="kpi-caption">Supplier credit</span>
+      </div>
+      <p class="kpi-label">Supplier Payables Owed</p>
+      <strong class="kpi-value">{{ loading ? '—' : (totalSupplierPayables | currency:'INR':'symbol':'1.2-2':'en-IN') }}</strong>
+      <p class="kpi-footnote">Pending supplier payments</p>
+    </article>
+
+    <article class="kpi-card">
+      <div class="kpi-topline">
+        <span class="kpi-icon kpi-slate" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3 2.8 19h18.4L12 3Zm0 6v4m0 3h.01" />
+          </svg>
+        </span>
+        <span class="kpi-caption">Stock health</span>
+      </div>
+      <p class="kpi-label">Stock Alerts Summary</p>
+      <strong class="kpi-value">{{ loading ? '—' : lowStockCount }}</strong>
+      <p class="kpi-footnote">
+        <span class="out-count">{{ outOfStockCount }}</span> completely out of stock
+      </p>
     </article>
   </section>
 
-  <section class="dashboard-row festival-card" [ngClass]="festivalAlert.state" aria-labelledby="festival-title">
-    <div class="festival-copy">
-      <p class="eyebrow">Seasonal buying guide</p>
-      <h3 id="festival-title">Cultural Festival Procurement Alert</h3>
-      <p class="festival-name">
-        {{ festivalAlert.name }}
-        <span *ngIf="festivalAlert.approximate" class="approximate-tag">Approximate date</span>
-      </p>
-      <p class="festival-categories">{{ festivalAlert.categories }}</p>
-      <small>Indicative recurring calendar; confirm local festival dates before purchasing.</small>
+  <section class="festival-banner" [ngClass]="festivalAlert.state" aria-labelledby="festival-heading">
+    <div class="festival-main">
+      <span class="festival-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v3m7.4-.4-2.1 2.1M22 13h-3M5 13H2m4.7-5.3L4.6 5.6M8 17.5a5 5 0 1 1 8 0c-.8.8-1 1.5-1 2.5H9c0-1-.2-1.7-1-2.5ZM9.5 22h5" />
+        </svg>
+      </span>
+      <div class="festival-copy">
+        <p class="festival-kicker">Seasonal procurement planner</p>
+        <h2 id="festival-heading">Upcoming Seasonal Demand Alert: {{ festivalAlert.name }} &amp; Wedding Season</h2>
+        <p>Prepare early for higher demand. Review your fast-moving staples and plan replenishment before the seasonal rush.</p>
+        <div class="recommendation-list" aria-label="Recommended seasonal stock">
+          <a *ngFor="let recommendation of recommendations" routerLink="/inventory" class="recommendation-tag">
+            {{ recommendation }}
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m9 18 6-6-6-6" />
+            </svg>
+          </a>
+        </div>
+      </div>
     </div>
-    <div class="festival-countdown" aria-live="polite">
+    <div class="festival-date" aria-label="Days until seasonal demand">
       <strong>{{ festivalAlert.daysAway === 0 ? 'Today' : festivalAlert.daysAway }}</strong>
-      <span>{{ festivalAlert.daysAway === 0 ? '' : 'days away' }}</span>
+      <span>{{ festivalAlert.daysAway === 0 ? 'Festival day' : 'days away' }}</span>
     </div>
   </section>
 
-  <section class="dashboard-row alerts-grid" aria-label="Inventory and khata alerts">
-    <section class="panel stock-panel" aria-labelledby="stock-heading">
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow">Restock soon</p>
-          <h3 id="stock-heading">
-            <svg aria-hidden="true" class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <div *ngIf="loadErrors.length" class="dashboard-notice" role="status">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9" />
+      <path stroke-linecap="round" d="M12 11v5m0-8h.01" />
+    </svg>
+    <span>{{ loadErrors.join(' ') }} Other dashboard data remains available.</span>
+  </div>
+  <div *ngIf="restockError" class="dashboard-notice error-notice" role="alert">{{ restockError }}</div>
+
+  <section class="workspace-grid" aria-label="Daily action workspace">
+    <section class="dashboard-panel restock-panel" aria-labelledby="restock-heading">
+      <header class="panel-header">
+        <div class="panel-title-group">
+          <span class="panel-icon panel-icon-amber" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3 2.8 19h18.4L12 3Zm0 6v4m0 3h.01" />
             </svg>
-            Low Stock Alert Grid
-          </h3>
-        </div>
-        <a routerLink="/inventory" class="subtle-link">View inventory</a>
-      </div>
-      <div *ngIf="lowStockProducts.length; else noLowStock" class="stock-grid">
-        <article class="stock-item" *ngFor="let product of lowStockProducts">
-          <div class="stock-item-heading">
-            <strong>{{ product.name }}</strong>
-            <span class="stock-badge">{{ product.currentStock }} {{ product.isLooseItem ? 'Kg' : (product.unit || 'units') }}</span>
+          </span>
+          <div>
+            <h2 id="restock-heading">Urgent Restock Watchlist</h2>
+            <p>Items at or below their reorder threshold</p>
           </div>
-          <p>{{ product.brand || product.category }}</p>
-          <div class="stock-meter" aria-hidden="true">
-            <span [style.width.%]="product.minStockAlert > 0 ? (product.currentStock / product.minStockAlert) * 100 : 0"></span>
-          </div>
-          <small>Restock threshold: {{ product.minStockAlert }} {{ product.isLooseItem ? 'Kg' : (product.unit || 'units') }}</small>
-        </article>
-      </div>
-      <ng-template #noLowStock>
-        <p class="empty-state">No low-stock products to show.</p>
-      </ng-template>
-    </section>
-
-    <section class="panel khata-panel" aria-labelledby="khata-heading">
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow">Customer follow-up</p>
-          <h3 id="khata-heading">
-            <svg aria-hidden="true" class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3h14v18l-7-4-7 4V3Zm4 5h6m-6 4h6" />
-            </svg>
-            Active Udhar Khata
-          </h3>
         </div>
-        <a routerLink="/khata" class="subtle-link">View khata</a>
-      </div>
-      <div *ngIf="activeKhataEntries.length; else noKhata" class="khata-list">
-        <article class="khata-item" *ngFor="let entry of activeKhataEntries">
-          <div class="khata-person">
-            <strong>{{ entry.customerName }}</strong>
-            <span>{{ entry.phoneNumber || 'No phone number' }}</span>
-          </div>
-          <strong class="khata-balance">{{ entry.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
-          <a
-            *ngIf="whatsappLink(entry) as messageLink"
-            class="whatsapp-link"
-            [href]="messageLink"
-            target="_blank"
-            rel="noopener noreferrer"
-            [attr.aria-label]="'Send khata reminder to ' + entry.customerName + ' on WhatsApp'"
-          >
-            WhatsApp
-          </a>
-        </article>
-      </div>
-      <ng-template #noKhata>
-        <p class="empty-state">No outstanding khata reminders.</p>
-      </ng-template>
-    </section>
-  </section>
-
-  <section class="dashboard-row utility-toolbar" aria-label="System utilities">
-    <section class="utility-panel" aria-labelledby="bulk-loader-heading">
-      <div class="utility-heading">
-        <div>
-          <p class="eyebrow">Spreadsheet utility</p>
-          <h3 id="bulk-loader-heading">
-            <svg aria-hidden="true" class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4zM4 10h16M10 4v16" />
-            </svg>
-            Bulk Loader Preview
-          </h3>
-        </div>
-        <label class="file-picker">
-          <svg aria-hidden="true" class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7 9m5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
+        <a routerLink="/inventory" class="panel-link">
+          View All Inventory
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
           </svg>
-          Choose CSV
-          <input type="file" accept=".csv,text/csv" (change)="onCsvSelected($event)" aria-label="Choose a CSV file to preview" />
-        </label>
+        </a>
+      </header>
+
+      <div *ngIf="loading" class="panel-state" role="status">Loading stock alerts…</div>
+      <div *ngIf="!loading && !lowStockProducts.length" class="panel-state">
+        <span class="empty-check" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6" />
+          </svg>
+        </span>
+        <strong>Stock levels look good</strong>
+        <span>No products are currently below their reorder threshold.</span>
       </div>
-      <p class="utility-note">Preview only. This does not import or change inventory.</p>
-      <p *ngIf="csvMessage" class="csv-message" role="status">{{ csvMessage }}</p>
-      <div *ngIf="csvHeaders.length" class="csv-preview">
-        <table>
+
+      <div *ngIf="!loading && lowStockProducts.length" class="restock-table-scroll">
+        <table class="restock-table">
           <thead>
-            <tr><th *ngFor="let header of csvHeaders">{{ header || 'Column' }}</th></tr>
+            <tr>
+              <th scope="col">Item &amp; Brand</th>
+              <th scope="col">Current Stock</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="restock-action-heading">Quick action</th>
+            </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of csvPreview">
-              <td *ngFor="let header of csvHeaders; let column = index">{{ row[column] || '—' }}</td>
+            <tr *ngFor="let product of lowStockProducts">
+              <td>
+                <div class="product-cell">
+                  <span class="product-avatar">{{ product.name.charAt(0) || 'P' }}</span>
+                  <span class="product-text">
+                    <strong>{{ product.name }}</strong>
+                    <small>{{ product.brand || product.category || 'Product' }}</small>
+                  </span>
+                </div>
+              </td>
+              <td class="stock-value">
+                {{ formatStock(product) }}
+                <span *ngIf="product.isLooseItem">Kg</span>
+                <span *ngIf="!product.isLooseItem && product.unit">{{ product.unit }}</span>
+              </td>
+              <td>
+                <span *ngIf="isOutOfStock(product)" class="status-pill status-pill-out">
+                  <span class="status-dot"></span>Out of Stock
+                </span>
+                <span *ngIf="!isOutOfStock(product)" class="status-pill status-pill-low">
+                  <span class="status-dot"></span>Low Stock
+                </span>
+              </td>
+              <td class="restock-action-cell">
+                <button
+                  type="button"
+                  class="restock-button"
+                  [disabled]="restockingProductId !== null"
+                  (click)="restock(product)"
+                >
+                  <svg *ngIf="restockingProductId !== product.id" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+                  </svg>
+                  <span *ngIf="restockingProductId === product.id" class="button-spinner" aria-hidden="true"></span>
+                  {{ restockingProductId === product.id ? 'Updating…' : '+10 Restock' }}
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section class="utility-panel timer-panel" aria-labelledby="timer-heading">
-      <div class="utility-heading">
-        <div>
-          <p class="eyebrow">Session security</p>
-          <h3 id="timer-heading">
-            <svg aria-hidden="true" class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="13" r="8" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4l2.5 1.5M9 2h6m-3 0v3" />
+    <section class="dashboard-panel khata-panel" aria-labelledby="khata-heading">
+      <header class="panel-header">
+        <div class="panel-title-group">
+          <span class="panel-icon panel-icon-rose" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3h14v18l-7-4-7 4V3Zm4 5h6m-6 4h6" />
             </svg>
-            Inactivity logout
-          </h3>
+          </span>
+          <div>
+            <h2 id="khata-heading">Top Pending Khata</h2>
+            <p>Customers with the highest balances</p>
+          </div>
         </div>
-        <strong class="timer-value" aria-live="polite">{{ timerLabel }}</strong>
+        <a routerLink="/khata" class="panel-link">
+          Full Ledger
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+          </svg>
+        </a>
+      </header>
+
+      <div *ngIf="loading" class="panel-state compact-state" role="status">Loading khata reminders…</div>
+      <div *ngIf="!loading && !topKhataEntries.length" class="panel-state compact-state">
+        <strong>No pending khata</strong>
+        <span>There are no outstanding customer balances.</span>
       </div>
-      <p class="utility-note">You will be logged out after 10 minutes without activity.</p>
-      <div
-        class="timer-track"
-        role="progressbar"
-        aria-label="Time remaining before inactivity logout"
-        aria-valuemin="0"
-        aria-valuemax="600"
-        [attr.aria-valuenow]="remainingSeconds"
-      >
-        <span [style.width.%]="timerProgress"></span>
+      <div *ngIf="!loading && topKhataEntries.length" class="khata-list">
+        <article *ngFor="let entry of topKhataEntries; let rank = index" class="khata-row">
+          <span class="khata-rank">{{ rank + 1 }}</span>
+          <div class="khata-customer">
+            <strong>{{ entry.customerName }}</strong>
+            <small>{{ entry.phoneNumber || 'Phone number unavailable' }}</small>
+          </div>
+          <div class="khata-payment">
+            <strong>{{ entry.outstandingBalance | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+            <a
+              *ngIf="whatsappLink(entry) as messageLink"
+              [href]="messageLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="whatsapp-button"
+              [attr.aria-label]="'Send WhatsApp payment reminder to ' + entry.customerName"
+              title="Send WhatsApp reminder"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.2-3.5A8.4 8.4 0 1 1 20 11.5Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8.5c.3-.5.6-.5.9-.5l.5 1.4-.7.8c.5 1 1.2 1.7 2.2 2.2l.8-.7 1.4.5c0 .4-.1.8-.5 1-1.1.7-4.7-1.1-5.3-3.5-.1-.5.2-.9.7-1.2Z" />
+              </svg>
+            </a>
+            <span *ngIf="!whatsappLink(entry)" class="whatsapp-unavailable" title="Add a valid phone number to send reminders">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 11.5a8.4 8.4 0 0 1-12.4 7.4L4 20l1.2-3.5A8.4 8.4 0 1 1 20 11.5ZM9 9l6 6m0-6-6 6" />
+              </svg>
+            </span>
+          </div>
+        </article>
       </div>
     </section>
   </section>
-</section>
+
+  <section class="shortcut-strip" aria-label="Quick actions and data backup">
+    <div class="shortcut-heading">
+      <p class="dashboard-eyebrow">AT A GLANCE</p>
+      <h2>Fast counter shortcuts</h2>
+    </div>
+    <div class="shortcut-links">
+      <a routerLink="/billing" class="shortcut-card">
+        <span class="shortcut-icon shortcut-emerald" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v15H4zM8 3v4m8-4v4M8 11h3m2 0h3m-8 4h3m2 0h3" />
+          </svg>
+        </span>
+        <span><strong>New Counter Bill</strong><small>Start a customer checkout</small></span>
+        <svg class="shortcut-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+        </svg>
+      </a>
+
+      <a routerLink="/scan-inspect" class="shortcut-card">
+        <span class="shortcut-icon shortcut-indigo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V5a1 1 0 0 1 1-1h3m8 0h3a1 1 0 0 1 1 1v3m0 8v3a1 1 0 0 1-1 1h-3m-8 0H5a1 1 0 0 1-1-1v-3M7 9v6m3-6v6m3-6v6m3-6v6" />
+          </svg>
+        </span>
+        <span><strong>Scan Product Barcode</strong><small>Inspect or identify an item</small></span>
+        <svg class="shortcut-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+        </svg>
+      </a>
+
+      <a routerLink="/suppliers" class="shortcut-card">
+        <span class="shortcut-icon shortcut-amber" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v11H3zM14 11h4l3 3v4h-7zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+          </svg>
+        </span>
+        <span><strong>Record Supplier Purchase</strong><small>Log an incoming delivery</small></span>
+        <svg class="shortcut-arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6" />
+        </svg>
+      </a>
+    </div>
+
+    <div class="backup-area">
+      <button type="button" class="backup-button" (click)="exportInventory()">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3" />
+        </svg>
+        Download Excel/CSV Backup
+      </button>
+      <p *ngIf="exportMessage" class="backup-message" role="status">{{ exportMessage }}</p>
+      <p *ngIf="exportError" class="backup-error" role="alert">{{ exportError }}</p>
+    </div>
+  </section>
+</main>

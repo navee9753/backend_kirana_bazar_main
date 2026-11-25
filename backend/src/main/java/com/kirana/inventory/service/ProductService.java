@@ -35,6 +35,24 @@ public class ProductService {
         return productRepository.findAll();
     }
 
+    public String exportProductsCsv() {
+        StringBuilder csv = new StringBuilder(
+                "name,brand,category,barcode,current_stock,min_stock_alert,purchase_price,mrp,is_loose_item\r\n"
+        );
+        for (Product product : productRepository.findAll()) {
+            csv.append(csvCell(product.getName())).append(',')
+                    .append(csvCell(product.getBrand())).append(',')
+                    .append(csvCell(product.getCategory())).append(',')
+                    .append(csvCell(product.getBarcode())).append(',')
+                    .append(csvCell(product.getCurrentStock())).append(',')
+                    .append(csvCell(product.getMinStockAlert())).append(',')
+                    .append(csvCell(product.getPurchasePrice())).append(',')
+                    .append(csvCell(product.getMrp())).append(',')
+                    .append(csvCell(product.getIsLooseItem())).append("\r\n");
+        }
+        return csv.toString();
+    }
+
     public List<Product> getLowStockProducts() {
         return productRepository.findLowStockProducts();
     }
@@ -79,7 +97,7 @@ public class ProductService {
     public int importProducts(MultipartFile file) {
         List<String[]> rows = FileImportHelper.parseFile(file);
         Map<String, Integer> columns = headerColumns(rows, Set.of(
-                "name", "brand", "category", "current_stock", "min_stock_alert", "purchase_price", "mrp", "is_loose_item"
+                "name", "brand", "category", "barcode", "current_stock", "min_stock_alert", "purchase_price", "mrp", "is_loose_item"
         ));
         requireHeaders(columns, Set.of("name", "purchase_price", "mrp"), "products");
 
@@ -95,6 +113,7 @@ public class ProductService {
             product.setName(requiredCell(row, columns, "name", csvRow, 255));
             product.setBrand(optionalCell(row, columns, "brand", 100, csvRow));
             product.setCategory(optionalCell(row, columns, "category", 100, csvRow));
+            product.setBarcode(optionalCell(row, columns, "barcode", 64, csvRow));
             product.setCurrentStock(optionalStock(row, columns, "current_stock", BigDecimal.ZERO, csvRow));
             product.setMinStockAlert(optionalStock(row, columns, "min_stock_alert", new BigDecimal("5.000"), csvRow));
             product.setIsLooseItem(optionalBoolean(row, columns, "is_loose_item", false, csvRow));
@@ -121,6 +140,7 @@ public class ProductService {
         existing.setName(product.getName().trim());
         existing.setBrand(product.getBrand());
         existing.setCategory(product.getCategory());
+        existing.setBarcode(product.getBarcode());
         existing.setCurrentStock(product.getCurrentStock());
         existing.setMinStockAlert(product.getMinStockAlert());
         existing.setIsLooseItem(product.getIsLooseItem() == null ? false : product.getIsLooseItem());
@@ -162,6 +182,15 @@ public class ProductService {
         Product existing = productRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         productRepository.delete(existing);
+    }
+
+    private String csvCell(Object value) {
+        String text = value == null ? "" : value.toString();
+        String leadingText = text.stripLeading();
+        if (!leadingText.isEmpty() && "=+-@\t\r".indexOf(leadingText.charAt(0)) >= 0) {
+            text = "'" + text;
+        }
+        return "\"" + text.replace("\"", "\"\"") + "\"";
     }
 
     private Map<String, Integer> headerColumns(List<String[]> rows, Set<String> supportedHeaders) {

@@ -32,6 +32,21 @@ class FileImportHelperTest {
     }
 
     @Test
+    void parsesCsvWithEscapedQuotesForExportRoundTrips() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "products.csv",
+                "text/csv",
+                "name,brand\n\"Tea \"\"Gold\"\", Assam\",Example\n".getBytes(StandardCharsets.UTF_8)
+        );
+
+        List<String[]> rows = FileImportHelper.parseFile(file);
+
+        assertEquals(2, rows.size());
+        assertArrayEquals(new String[]{"Tea \"Gold\", Assam", "Example"}, rows.get(1));
+    }
+
+    @Test
     void parsesFirstSheetOfXlsxUsingFormattedCellValues() throws IOException {
         byte[] content;
         try (XSSFWorkbook workbook = new XSSFWorkbook();

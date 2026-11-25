@@ -15,12 +15,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 public final class FileImportHelper {
 
-    private static final Pattern CSV_DELIMITER =
-            Pattern.compile(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
     private static final long MAX_FILE_SIZE_BYTES = 20L * 1024 * 1024;
     private static final int MAX_ROWS = 10_001;
 
@@ -58,9 +55,9 @@ public final class FileImportHelper {
                 if (rows.size() >= MAX_ROWS) {
                     throw new IllegalArgumentException("The file cannot contain more than 10,000 data rows.");
                 }
-                String[] cells = CSV_DELIMITER.split(line, -1);
+                String[] cells = parseCsvLine(line);
                 for (int index = 0; index < cells.length; index++) {
-                    String value = cells[index].trim().replace("\"", "");
+                    String value = cells[index];
                     if (rows.isEmpty() && index == 0) {
                         value = value.replace("\uFEFF", "");
                     }
@@ -72,6 +69,35 @@ public final class FileImportHelper {
             throw new IllegalArgumentException("Unable to read the uploaded CSV file.", exception);
         }
         return rows;
+    }
+
+    private static String[] parseCsvLine(String line) {
+        List<String> cells = new ArrayList<>();
+        StringBuilder cell = new StringBuilder();
+        boolean insideQuotes = false;
+
+        for (int index = 0; index < line.length(); index++) {
+            char character = line.charAt(index);
+            if (character == '"') {
+                if (insideQuotes && index + 1 < line.length() && line.charAt(index + 1) == '"') {
+                    cell.append('"');
+                    index++;
+                } else {
+                    insideQuotes = !insideQuotes;
+                }
+            } else if (character == ',' && !insideQuotes) {
+                cells.add(cell.toString().trim());
+                cell.setLength(0);
+            } else {
+                cell.append(character);
+            }
+        }
+
+        if (insideQuotes) {
+            throw new IllegalArgumentException("The uploaded CSV contains an unterminated quoted field.");
+        }
+        cells.add(cell.toString().trim());
+        return cells.toArray(String[]::new);
     }
 
     private static List<String[]> parseWorkbook(MultipartFile file) {

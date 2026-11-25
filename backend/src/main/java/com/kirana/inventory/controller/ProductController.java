@@ -6,12 +6,15 @@ import com.kirana.inventory.dto.StockDeductionBatchRequest;
 import com.kirana.inventory.model.Product;
 import com.kirana.inventory.service.ProductService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -27,6 +30,15 @@ public class ProductController {
     @GetMapping("/products")
     public List<Product> getAllProducts() {
         return productService.getAllProducts();
+    }
+
+    @GetMapping(value = "/products/export", produces = "text/csv")
+    public ResponseEntity<byte[]> exportProducts() {
+        byte[] csv = ("\uFEFF" + productService.exportProductsCsv()).getBytes(StandardCharsets.UTF_8);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"kirana-inventory.csv\"")
+                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+                .body(csv);
     }
 
     @GetMapping("/products/low-stock")

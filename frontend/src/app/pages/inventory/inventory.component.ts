@@ -2,45 +2,58 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { InventoryService, Product } from '../../services/inventory.service';
 
 interface ProductRow {
-  id?: number;
+  id: number;
   name: string;
   brand: string;
+  barcode: string;
+  sku: string;
   stock: number;
   min: number;
   purchase: number;
   mrp: number;
   category: string;
   isLooseItem: boolean;
+  unit: string;
 }
+
+type InventoryFilter = 'all' | 'low' | 'out' | 'loose';
 
 @Component({
   selector: 'app-inventory-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './inventory.component.html',
   styleUrls: ['./inventory.component.css']
 })
 export class InventoryPageComponent implements OnInit {
   inventory: ProductRow[] = [];
   searchInput = '';
-  searchTerm = '';
+  selectedCategory = 'All Categories';
+  activeFilter: InventoryFilter = 'all';
   showForm = false;
   saving = false;
+  loading = false;
+  loadError = '';
   formError = '';
   editingId: number | null = null;
+  savingStockId: number | null = null;
+  deletingId: number | null = null;
+  actionError = '';
+  actionMessage = '';
   importing = false;
   importMessage = '';
   importError = '';
+  readonly categories = ['Staples', 'Snacks', 'Dairy', 'Beverages', 'Household', 'Personal Care'];
 
   form = {
     name: '',
     brand: '',
     category: '',
+    barcode: '',
     currentStock: 0,
     minStockAlert: 0,
     purchasePrice: 0,
@@ -55,39 +68,49 @@ export class InventoryPageComponent implements OnInit {
   }
 
   get filteredInventory(): ProductRow[] {
-    const query = this.searchTerm.trim().toLocaleLowerCase();
-    if (!query) {
-      return this.inventory;
-    }
-
-    return this.inventory.filter((item) =>
-      item.name.toLocaleLowerCase().includes(query)
-      || item.brand.toLocaleLowerCase().includes(query)
-      || item.category.toLocaleLowerCase().includes(query)
-    );
-  }
-
-  searchInventory(): void {
-    this.searchTerm = this.searchInput;
+    const query = this.searchInput.trim().toLocaleLowerCase();
+    return this.inventory.filter((item) => {
+      const matchesSearch = !query
+        || item.name.toLocaleLowerCase().includes(query)
+        || item.brand.toLocaleLowerCase().includes(query)
+        || item.barcode.toLocaleLowerCase().includes(query)
+        || item.sku.toLocaleLowerCase().includes(query);
+      const matchesCategory = this.selectedCategory === 'All Categories'
+        || this.categoryMatches(item.category, this.selectedCategory);
+      const matchesStatus = this.activeFilter === 'all'
+        || (this.activeFilter === 'low' && item.stock > 0 && item.stock <= item.min)
+        || (this.activeFilter === 'out' && item.stock <= 0)
+        || (this.activeFilter === 'loose' && item.isLooseItem);
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
   }
 
   load(): void {
+    this.loading = true;
+    this.loadError = '';
     this.inventoryService.getProducts().subscribe({
       next: (products: Product[]) => {
-        this.inventory = products.map((product) => ({
+        this.inventory = products
+          .filter((product): product is Product & { id: number } => product.id != null)
+          .map((product) => ({
           id: product.id,
           name: product.name,
-          brand: product.brand,
-          category: product.category,
+          brand: product.brand ?? '',
+          barcode: product.barcode ?? '',
+          sku: product.sku ?? '',
+          category: product.category ?? '',
           stock: Number(product.currentStock ?? 0),
           min: Number(product.minStockAlert ?? 0),
           purchase: Number(product.purchasePrice ?? 0),
           mrp: Number(product.mrp ?? 0),
-          isLooseItem: product.isLooseItem ?? false
+          isLooseItem: product.isLooseItem ?? false,
+          unit: product.unit ?? 'units'
         }));
+        this.loading = false;
       },
       error: () => {
-        this.inventory = [];
+        this.loadError = 'Could not load inventory. Check the server connection and try again.';
+        this.loading = false;
       }
     });
   }
@@ -98,6 +121,7 @@ export class InventoryPageComponent implements OnInit {
       name: '',
       brand: '',
       category: '',
+      barcode: '',
       currentStock: 0,
       minStockAlert: 0,
       purchasePrice: 0,
@@ -114,6 +138,7 @@ export class InventoryPageComponent implements OnInit {
       name: item.name,
       brand: item.brand ?? '',
       category: item.category ?? '',
+      barcode: item.barcode ?? '',
       currentStock: item.stock,
       minStockAlert: item.min,
       purchasePrice: item.purchase,
@@ -135,6 +160,7 @@ export class InventoryPageComponent implements OnInit {
       name: this.form.name.trim(),
       brand: this.form.brand.trim(),
       category: this.form.category.trim(),
+      barcode: this.form.barcode.trim(),
       currentStock: Number(this.form.currentStock ?? 0),
       minStockAlert: Number(this.form.minStockAlert ?? 0),
       purchasePrice: Number(this.form.purchasePrice ?? 0),
@@ -150,8 +176,9 @@ export class InventoryPageComponent implements OnInit {
       this.formError = 'Category is required.';
       return;
     }
-    if (payload.currentStock < 0 || payload.minStockAlert < 0 || payload.purchasePrice < 0 || payload.mrp < 0) {
-      this.formError = 'Amounts and stock values cannot be negative.';
+    const numericValues = [payload.currentStock, payload.minStockAlert, payload.purchasePrice, payload.mrp];
+    if (numericValues.some((value) => !Number.isFinite(value) || value < 0)) {
+      this.formError = 'Enter valid amounts and non-negative stock values.';
       return;
     }
 
@@ -176,14 +203,99 @@ export class InventoryPageComponent implements OnInit {
   }
 
   deleteItem(item: ProductRow): void {
-    if (!item.id || !confirm(`Delete ${item.name}?`)) {
+    if (!confirm(`Delete ${item.name}? This cannot be undone.`)) {
       return;
     }
 
+    this.deletingId = item.id;
+    this.actionError = '';
+    this.actionMessage = '';
     this.inventoryService.deleteProduct(item.id).subscribe({
-      next: () => this.load(),
-      error: () => alert('Unable to delete the item right now.')
+      next: () => {
+        this.deletingId = null;
+        this.actionMessage = `${item.name} was deleted.`;
+        this.load();
+      },
+      error: () => {
+        this.deletingId = null;
+        this.actionError = 'Unable to delete this item. Please try again.';
+      }
     });
+  }
+
+  adjustStock(item: ProductRow, adjustment: number): void {
+    const nextStock = Math.round((item.stock + adjustment + Number.EPSILON) * 1000) / 1000;
+    if (this.savingStockId != null || nextStock < 0) {
+      return;
+    }
+
+    this.savingStockId = item.id;
+    this.actionError = '';
+    this.actionMessage = '';
+    const product: Product = {
+      id: item.id,
+      name: item.name,
+      brand: item.brand,
+      category: item.category,
+      barcode: item.barcode,
+      sku: item.sku,
+      currentStock: nextStock,
+      minStockAlert: item.min,
+      purchasePrice: item.purchase,
+      mrp: item.mrp,
+      isLooseItem: item.isLooseItem,
+      unit: item.unit
+    };
+
+    this.inventoryService.updateProduct(item.id, product).subscribe({
+      next: () => {
+        this.savingStockId = null;
+        this.actionMessage = `${item.name} stock updated.`;
+        this.load();
+      },
+      error: () => {
+        this.savingStockId = null;
+        this.actionError = `Could not update stock for ${item.name}.`;
+      }
+    });
+  }
+
+  exportInventory(): void {
+    this.actionError = '';
+    this.actionMessage = '';
+    this.inventoryService.exportProducts().subscribe({
+      next: (file) => {
+        const url = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'kirana-inventory.csv';
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+        this.actionMessage = 'Inventory backup downloaded.';
+      },
+      error: () => {
+        this.actionError = 'Could not export inventory. Please try again.';
+      }
+    });
+  }
+
+  statusFor(item: ProductRow): 'Out of Stock' | 'Low Stock' | 'In Stock' {
+    if (item.stock <= 0) {
+      return 'Out of Stock';
+    }
+    return item.stock <= item.min ? 'Low Stock' : 'In Stock';
+  }
+
+  trackById(_index: number, item: ProductRow): number {
+    return item.id;
+  }
+
+  private categoryMatches(itemCategory: string, selectedCategory: string): boolean {
+    const normalized = itemCategory.trim().toLocaleLowerCase();
+    if (selectedCategory === 'Staples') {
+      return normalized === 'staples' || normalized === 'grocery' || normalized === 'groceries';
+    }
+    return normalized === selectedCategory.toLocaleLowerCase();
   }
 
   importFile(event: Event): void {
@@ -213,20 +325,6 @@ export class InventoryPageComponent implements OnInit {
         this.importError = this.messageForImportError(error);
       }
     });
-  }
-
-  downloadImportTemplate(): void {
-    const csv = [
-      'name,brand,category,current_stock,min_stock_alert,purchase_price,mrp,is_loose_item',
-      'Rice Bag,Hulchul,Groceries,48.000,12.000,1900.00,2200.00,false'
-    ].join('\r\n');
-    const file = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(file);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'inventory-import-template.csv';
-    link.click();
-    URL.revokeObjectURL(url);
   }
 
   private messageForImportError(error: HttpErrorResponse): string {

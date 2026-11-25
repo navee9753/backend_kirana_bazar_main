@@ -5,6 +5,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,6 +35,10 @@ public class Product {
 
     @Column(name = "category")
     private String category;
+
+    @Size(max = 64, message = "Barcode must be 64 characters or fewer")
+    @Column(name = "barcode", length = 64)
+    private String barcode;
 
     @PositiveOrZero(message = "Current stock cannot be negative")
     @Digits(integer = 9, fraction = 3, message = "Current stock must fit NUMERIC(12,3)")
@@ -151,6 +156,14 @@ public class Product {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
     }
 
     public BigDecimal getCurrentStock() {

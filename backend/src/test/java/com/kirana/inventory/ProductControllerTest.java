@@ -23,6 +23,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -55,6 +58,16 @@ class ProductControllerTest {
         worker.setPhoneNumber("8888888888");
         worker.setRole("ROLE_WORKER");
         return jwtTokenProvider.generateToken(worker);
+    }
+
+    @Test
+    void shouldExportProductCatalogAsCsv() throws Exception {
+        mockMvc.perform(get("/api/products/export")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.valueOf("text/csv")))
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("kirana-inventory.csv")))
+                .andExpect(content().string(containsString("name,brand,category,barcode")));
     }
 
     @Test

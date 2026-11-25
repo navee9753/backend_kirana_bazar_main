@@ -222,7 +222,7 @@ export class InventoryService {
 
   getProducts(): Observable<Product[]> {
     return this.http.get<Product[]>(this.productUrl, { headers: this.authHeaders() }).pipe(
-      catchError(() => of(this.readLocalProducts()))
+      tap((products) => this.persistLocalProducts(products))
     );
   }
 
@@ -234,42 +234,32 @@ export class InventoryService {
     });
   }
 
+  exportProducts(): Observable<Blob> {
+    return this.http.get(`${this.productUrl}/export`, {
+      headers: this.authHeaders(),
+      responseType: 'blob'
+    });
+  }
+
   getDashboardSummary(): Observable<DashboardSummary> {
     return this.http.get<DashboardSummary>(`${this.apiBaseUrl}/api/dashboard/summary`, { headers: this.authHeaders() });
   }
 
   addProduct(product: Product): Observable<Product> {
-    const currentProducts = this.readLocalProducts();
-    const newProduct: Product = {
-      ...product,
-      id: Date.now(),
-      currentStock: Number(product.currentStock ?? 0),
-      minStockAlert: Number(product.minStockAlert ?? 0),
-      purchasePrice: Number(product.purchasePrice ?? 0),
-      mrp: Number(product.mrp ?? 0),
-      salePrice: Number(product.salePrice ?? product.mrp ?? 0)
-    };
-
-    const updatedProducts = [newProduct, ...currentProducts];
-    this.persistLocalProducts(updatedProducts);
-
     return this.http.post<Product>(this.productUrl, product, { headers: this.authHeaders() }).pipe(
-      catchError(() => of(newProduct))
+      tap((savedProduct) => {
+        const products = this.readLocalProducts();
+        this.persistLocalProducts([savedProduct, ...products.filter((item) => item.id !== savedProduct.id)]);
+      })
     );
   }
 
   updateProduct(id: number, product: Product): Observable<Product> {
-    const currentProducts = this.readLocalProducts();
-    const index = currentProducts.findIndex((item) => item.id === id);
-
-    if (index !== -1) {
-      const updated = { ...currentProducts[index], ...product, id };
-      currentProducts[index] = updated;
-      this.persistLocalProducts(currentProducts);
-    }
-
     return this.http.put<Product>(`${this.productUrl}/${id}`, product, { headers: this.authHeaders() }).pipe(
-      catchError(() => of({ ...product, id }))
+      tap((savedProduct) => {
+        const products = this.readLocalProducts();
+        this.persistLocalProducts(products.map((item) => item.id === id ? savedProduct : item));
+      })
     );
   }
 
@@ -299,12 +289,11 @@ export class InventoryService {
   }
 
   deleteProduct(id: number): Observable<void> {
-    const currentProducts = this.readLocalProducts();
-    const filtered = currentProducts.filter((item) => item.id !== id);
-    this.persistLocalProducts(filtered);
-
     return this.http.delete<void>(`${this.productUrl}/${id}`, { headers: this.authHeaders() }).pipe(
-      catchError(() => of())
+      tap(() => {
+        const filtered = this.readLocalProducts().filter((item) => item.id !== id);
+        this.persistLocalProducts(filtered);
+      })
     );
   }
 

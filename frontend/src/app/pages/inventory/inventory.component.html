@@ -1,139 +1,363 @@
-<section class="page-shell">
-  <header class="page-head">
+<section class="inventory-page" aria-labelledby="inventory-title">
+  <header class="inventory-header">
     <div>
-      <p class="eyebrow">Inventory</p>
-      <h2>Stock control</h2>
+      <p class="inventory-eyebrow">NAVEEN KIRANA BAZAR</p>
+      <h1 id="inventory-title">Inventory &amp; Stock Catalog</h1>
+      <p class="inventory-subtitle">{{ inventory.length }} item{{ inventory.length === 1 ? '' : 's' }} in your catalog</p>
     </div>
-    <div class="page-actions">
-      <button type="button" class="template-button" (click)="downloadImportTemplate()">
-        Download sample CSV
+
+    <div class="inventory-actions">
+      <button type="button" class="button button-outline" (click)="exportInventory()">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3" />
+        </svg>
+        Export CSV
       </button>
-      <label class="import-button" [class.disabled]="importing">
-        {{ importing ? 'Importing…' : 'Import file' }}
+
+      <label class="button button-indigo" [class.is-loading]="importing">
+        <svg *ngIf="!importing" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7 9m5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
+        </svg>
+        <svg *ngIf="importing" class="spinner" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3" />
+          <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+        </svg>
+        {{ importing ? 'Importing…' : 'Import Excel/CSV' }}
         <input
           type="file"
-          accept=".csv,.xls,.xlsx"
+          accept=".csv,.xlsx,.xls"
           [disabled]="importing"
           (change)="importFile($event)"
-          aria-label="Import products from CSV or Excel"
+          aria-label="Import products from Excel or CSV"
         />
       </label>
-      <button type="button" class="action-button" (click)="openCreateForm()">+ Add item</button>
-    </div>
-  </header>
-  <p class="template-hint">The CSV includes every importable product column. Product IDs are generated automatically.</p>
 
-  <p *ngIf="importMessage" class="import-message success" role="status">{{ importMessage }}</p>
-  <p *ngIf="importError" class="import-message error" role="alert">{{ importError }}</p>
-
-  <form class="panel form-panel" *ngIf="showForm" (ngSubmit)="submitForm()" novalidate>
-    <div class="section">
-      <h3>{{ editingId != null ? 'Edit inventory item' : 'Add inventory item' }}</h3>
-
-      <div class="field-grid">
-        <label>
-          <span>Item name</span>
-          <input type="text" name="name" [(ngModel)]="form.name" placeholder="Rice bag" required>
-        </label>
-
-        <label>
-          <span>Brand</span>
-          <input type="text" name="brand" [(ngModel)]="form.brand" placeholder="Hulchul">
-        </label>
-
-        <label>
-          <span>Category</span>
-          <input type="text" name="category" [(ngModel)]="form.category" placeholder="Groceries">
-        </label>
-
-        <label>
-          <span>Current stock</span>
-          <input type="number" name="currentStock" [(ngModel)]="form.currentStock" min="0" step="0.001">
-        </label>
-
-        <label>
-          <span>Min stock</span>
-          <input type="number" name="minStockAlert" [(ngModel)]="form.minStockAlert" min="0" step="0.001">
-        </label>
-
-        <label class="loose-item-toggle">
-          <input type="checkbox" name="isLooseItem" [(ngModel)]="form.isLooseItem">
-          <span>Sold Loose by Weight (Kg)</span>
-        </label>
-
-        <label>
-          <span>Purchase price</span>
-          <input type="number" name="purchasePrice" [(ngModel)]="form.purchasePrice" min="0" step="0.01">
-        </label>
-
-        <label>
-          <span>MRP</span>
-          <input type="number" name="mrp" [(ngModel)]="form.mrp" min="0" step="0.01">
-        </label>
-      </div>
-
-      <p class="form-error" role="alert" *ngIf="formError">{{ formError }}</p>
-    </div>
-
-    <div class="form-actions">
-      <button type="button" class="secondary-button" (click)="closeForm()" [disabled]="saving">Cancel</button>
-      <button type="submit" class="primary-button" [disabled]="saving">
-        {{ saving ? 'Saving…' : (editingId != null ? 'Update item' : 'Save item') }}
+      <button type="button" class="button button-primary" (click)="openCreateForm()">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+        </svg>
+        Add New Item
       </button>
     </div>
-  </form>
+  </header>
 
-  <div class="panel" *ngIf="!showForm">
-    <form class="inventory-search" (ngSubmit)="searchInventory()">
-      <label for="inventory-search">Search inventory</label>
+  <div *ngIf="importMessage" class="notice notice-success" role="status">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6" />
+    </svg>
+    {{ importMessage }}
+  </div>
+  <div *ngIf="importError" class="notice notice-error" role="alert">{{ importError }}</div>
+  <div *ngIf="actionMessage" class="notice notice-success" role="status">{{ actionMessage }}</div>
+  <div *ngIf="actionError" class="notice notice-error" role="alert">{{ actionError }}</div>
+
+  <section class="filter-card" aria-label="Search and filter inventory">
+    <label class="search-field">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="7" />
+        <path stroke-linecap="round" d="m20 20-4-4" />
+      </svg>
       <input
-        id="inventory-search"
         type="search"
         name="inventorySearch"
         [(ngModel)]="searchInput"
-        placeholder="Search by item, brand, or category"
+        placeholder="Search name, brand, or barcode"
         autocomplete="off"
-      >
-      <button type="submit" class="primary-button">Search</button>
-    </form>
+        aria-label="Search by item name, brand, or barcode"
+      />
+      <kbd>⌘ K</kbd>
+    </label>
 
-    <div class="table-wrap">
-      <table>
+    <label class="category-filter">
+      <span>Category</span>
+      <select name="inventoryCategory" [(ngModel)]="selectedCategory" aria-label="Filter by category">
+        <option>All Categories</option>
+        <option *ngFor="let category of categories">{{ category }}</option>
+      </select>
+    </label>
+
+    <div class="status-filters" role="group" aria-label="Filter inventory status">
+      <button type="button" [class.active]="activeFilter === 'all'" [attr.aria-pressed]="activeFilter === 'all'" (click)="activeFilter = 'all'">All Items</button>
+      <button type="button" [class.active]="activeFilter === 'low'" [attr.aria-pressed]="activeFilter === 'low'" (click)="activeFilter = 'low'">
+        <span class="filter-dot dot-amber"></span> Low Stock Only
+      </button>
+      <button type="button" [class.active]="activeFilter === 'out'" [attr.aria-pressed]="activeFilter === 'out'" (click)="activeFilter = 'out'">
+        <span class="filter-dot dot-rose"></span> Out of Stock
+      </button>
+      <button type="button" [class.active]="activeFilter === 'loose'" [attr.aria-pressed]="activeFilter === 'loose'" (click)="activeFilter = 'loose'">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m-5-3 5 3 5-3M7 6l5-3 5 3" />
+        </svg>
+        Loose Staples
+      </button>
+    </div>
+  </section>
+
+  <div *ngIf="loading" class="state-card" role="status">
+    <span class="spinner state-spinner" aria-hidden="true"></span>
+    Loading inventory…
+  </div>
+  <div *ngIf="loadError" class="notice notice-error" role="alert">
+    {{ loadError }}
+    <button type="button" class="text-button" (click)="load()">Try again</button>
+  </div>
+
+  <section *ngIf="!loading && !loadError" class="catalog-card" aria-label="Inventory catalog">
+    <div class="catalog-topline">
+      <div>
+        <h2>Product catalog</h2>
+        <p>{{ filteredInventory.length }} result{{ filteredInventory.length === 1 ? '' : 's' }}</p>
+      </div>
+      <span class="catalog-count">{{ inventory.length }} total</span>
+    </div>
+
+    <div class="table-scroll">
+      <table class="inventory-table">
         <thead>
           <tr>
-            <th>Item</th>
-            <th>Brand</th>
-            <th>Stock</th>
-            <th>Min</th>
-            <th>Purchase</th>
-            <th>MRP</th>
-            <th>Actions</th>
+            <th scope="col">Item &amp; Brand</th>
+            <th scope="col">Category</th>
+            <th scope="col">Barcode / SKU</th>
+            <th scope="col">Current Stock</th>
+            <th scope="col">Buying Price</th>
+            <th scope="col">MRP</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="actions-heading">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of filteredInventory">
-            <td>{{ item.name }}</td>
-            <td>{{ item.brand || '-' }}</td>
+          <tr *ngFor="let item of filteredInventory; trackBy: trackById">
             <td>
-              <span class="stock-pill" [class.low]="item.stock <= item.min">
-                {{ item.stock }}{{ item.isLooseItem ? ' Kg' : '' }}
+              <div class="item-cell">
+                <span class="item-avatar">{{ item.name.charAt(0) || 'I' }}</span>
+                <span class="item-copy">
+                  <strong>{{ item.name }}</strong>
+                  <small>{{ item.brand || 'No brand' }}</small>
+                </span>
+              </div>
+            </td>
+            <td><span class="category-tag">{{ item.category || 'Uncategorized' }}</span></td>
+            <td class="code-cell">{{ item.barcode || item.sku || '—' }}</td>
+            <td>
+              <div class="stock-control" [attr.aria-label]="'Stock for ' + item.name">
+                <button
+                  type="button"
+                  class="stock-adjust"
+                  [disabled]="savingStockId !== null || item.stock <= 0"
+                  [attr.aria-label]="'Decrease ' + item.name + ' stock by one'"
+                  (click)="adjustStock(item, -1)"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" d="M5 12h14" />
+                  </svg>
+                </button>
+                <strong>{{ item.stock | number:'1.0-3' }}</strong>
+                <span *ngIf="item.isLooseItem" class="stock-unit">Kg</span>
+                <span *ngIf="!item.isLooseItem && item.unit !== 'units'" class="stock-unit">{{ item.unit }}</span>
+                <button
+                  type="button"
+                  class="stock-adjust"
+                  [disabled]="savingStockId !== null"
+                  [attr.aria-label]="'Increase ' + item.name + ' stock by one'"
+                  (click)="adjustStock(item, 1)"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" d="M12 5v14m-7-7h14" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+            <td>{{ item.purchase | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+            <td class="mrp-cell">{{ item.mrp | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="{
+                'status-out': statusFor(item) === 'Out of Stock',
+                'status-low': statusFor(item) === 'Low Stock',
+                'status-in': statusFor(item) === 'In Stock'
+              }">
+                <span class="status-dot"></span>
+                {{ statusFor(item) }}
               </span>
             </td>
-            <td>{{ item.min }}{{ item.isLooseItem ? ' Kg' : '' }}</td>
-            <td>₹{{ item.purchase }}</td>
-            <td>₹{{ item.mrp }}</td>
             <td>
-              <div class="table-actions">
-                <button type="button" class="secondary-button small" (click)="editItem(item)">Edit</button>
-                <button type="button" class="danger-button small" (click)="deleteItem(item)">Delete</button>
+              <div class="row-actions">
+                <button type="button" class="icon-button" [attr.aria-label]="'Edit ' + item.name" (click)="editItem(item)">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m15 5 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15l-.8 5Z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="icon-button danger-icon"
+                  [disabled]="deletingId === item.id"
+                  [attr.aria-label]="'Delete ' + item.name"
+                  (click)="deleteItem(item)"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16m-10 4v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3" />
+                  </svg>
+                </button>
               </div>
             </td>
           </tr>
           <tr *ngIf="!filteredInventory.length">
-            <td colspan="7" class="empty-results">No inventory items match your search.</td>
+            <td colspan="8">
+              <div class="empty-state">
+                <span class="empty-icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4zM8 9h8m-8 4h8m-8 4h5" />
+                  </svg>
+                </span>
+                <strong>No matching inventory items</strong>
+                <p>Try changing your search or filters.</p>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
+
+  <section *ngIf="!loading && !loadError" class="mobile-inventory" aria-label="Inventory items">
+    <article *ngFor="let item of filteredInventory; trackBy: trackById" class="mobile-item-card">
+      <header class="mobile-item-heading">
+        <div class="item-cell">
+          <span class="item-avatar">{{ item.name.charAt(0) || 'I' }}</span>
+          <span class="item-copy">
+            <strong>{{ item.name }}</strong>
+            <small>{{ item.brand || item.category || 'No brand' }}</small>
+          </span>
+        </div>
+        <span class="status-badge" [ngClass]="{
+          'status-out': statusFor(item) === 'Out of Stock',
+          'status-low': statusFor(item) === 'Low Stock',
+          'status-in': statusFor(item) === 'In Stock'
+        }">
+          <span class="status-dot"></span>{{ statusFor(item) }}
+        </span>
+      </header>
+      <div class="mobile-item-meta">
+        <span>{{ item.category || 'Uncategorized' }}</span>
+        <span>{{ item.barcode || item.sku || 'No barcode / SKU' }}</span>
+      </div>
+      <div class="mobile-item-stock">
+        <span>Current stock</span>
+        <div class="stock-control" [attr.aria-label]="'Stock for ' + item.name">
+          <button type="button" class="stock-adjust" [disabled]="savingStockId !== null || item.stock <= 0" [attr.aria-label]="'Decrease ' + item.name + ' stock by one'" (click)="adjustStock(item, -1)">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M5 12h14" /></svg>
+          </button>
+          <strong>{{ item.stock | number:'1.0-3' }}<small *ngIf="item.isLooseItem"> Kg</small></strong>
+          <button type="button" class="stock-adjust" [disabled]="savingStockId !== null" [attr.aria-label]="'Increase ' + item.name + ' stock by one'" (click)="adjustStock(item, 1)">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M12 5v14m-7-7h14" /></svg>
+          </button>
+        </div>
+      </div>
+      <div class="mobile-item-prices">
+        <span>Buying <strong>{{ item.purchase | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></span>
+        <span>MRP <strong>{{ item.mrp | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></span>
+      </div>
+      <footer class="mobile-item-actions">
+        <button type="button" class="mobile-action" (click)="editItem(item)">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m15 5 4 4M4 20l4-.8L19 8a2.8 2.8 0 0 0-4-4L4 15l-.8 5Z" /></svg>
+          Edit
+        </button>
+        <button type="button" class="mobile-action danger-text" [disabled]="deletingId === item.id" (click)="deleteItem(item)">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16m-10 4v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3" /></svg>
+          Delete
+        </button>
+      </footer>
+    </article>
+    <div *ngIf="!filteredInventory.length" class="empty-state mobile-empty">
+      <strong>No matching inventory items</strong>
+      <p>Try changing your search or filters.</p>
+    </div>
+  </section>
 </section>
+
+<div *ngIf="showForm" class="drawer-backdrop" (click)="closeForm()" (keydown.escape)="closeForm()">
+  <section
+    class="product-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="product-drawer-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="drawer-header">
+      <div>
+        <p class="inventory-eyebrow">{{ editingId != null ? 'UPDATE CATALOG' : 'NEW CATALOG ENTRY' }}</p>
+        <h2 id="product-drawer-title">{{ editingId != null ? 'Edit inventory item' : 'Add new item' }}</h2>
+        <p>Product details and shelf stock</p>
+      </div>
+      <button type="button" class="icon-button drawer-close" aria-label="Close form" (click)="closeForm()" [disabled]="saving">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="m6 6 12 12M18 6 6 18" /></svg>
+      </button>
+    </header>
+
+    <form class="drawer-form" (ngSubmit)="submitForm()" novalidate>
+      <div class="drawer-fields">
+        <label class="form-field field-wide">
+          <span>Item name <b>*</b></span>
+          <input type="text" name="name" [(ngModel)]="form.name" placeholder="e.g. Basmati Rice" maxlength="255" required autocomplete="off" />
+        </label>
+        <label class="form-field">
+          <span>Brand</span>
+          <input type="text" name="brand" [(ngModel)]="form.brand" placeholder="Brand name" maxlength="100" />
+        </label>
+        <label class="form-field">
+          <span>Category <b>*</b></span>
+          <select name="category" [(ngModel)]="form.category" required>
+            <option value="" disabled>Select a category</option>
+            <option *ngIf="form.category && !categories.includes(form.category)" [value]="form.category">
+              {{ form.category }} (current)
+            </option>
+            <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+          </select>
+        </label>
+        <label class="form-field field-wide">
+          <span>Barcode / SKU</span>
+          <input type="text" name="barcode" [(ngModel)]="form.barcode" placeholder="Scan or enter barcode" maxlength="64" autocomplete="off" />
+        </label>
+        <label class="form-field">
+          <span>Current stock</span>
+          <input type="number" name="currentStock" [(ngModel)]="form.currentStock" min="0" step="0.001" inputmode="decimal" />
+        </label>
+        <label class="form-field">
+          <span>Low-stock threshold</span>
+          <input type="number" name="minStockAlert" [(ngModel)]="form.minStockAlert" min="0" step="0.001" inputmode="decimal" />
+        </label>
+        <label class="form-field">
+          <span>Buying price</span>
+          <span class="currency-input"><b>₹</b><input type="number" name="purchasePrice" [(ngModel)]="form.purchasePrice" min="0" step="0.01" inputmode="decimal" /></span>
+        </label>
+        <label class="form-field">
+          <span>MRP</span>
+          <span class="currency-input"><b>₹</b><input type="number" name="mrp" [(ngModel)]="form.mrp" min="0" step="0.01" inputmode="decimal" /></span>
+        </label>
+        <label class="loose-toggle field-wide">
+          <span class="toggle-copy">
+            <strong>Sold Loose by Weight in Kg</strong>
+            <small>Enable for products sold by measured weight.</small>
+          </span>
+          <input type="checkbox" name="isLooseItem" [(ngModel)]="form.isLooseItem" />
+          <span class="toggle-track" aria-hidden="true"></span>
+        </label>
+      </div>
+
+      <p *ngIf="formError" class="notice notice-error form-notice" role="alert">{{ formError }}</p>
+
+      <footer class="drawer-actions">
+        <button type="button" class="button button-outline" (click)="closeForm()" [disabled]="saving">Cancel</button>
+        <button type="submit" class="button button-primary" [disabled]="saving">
+          <svg *ngIf="saving" class="spinner" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3" />
+            <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          </svg>
+          <svg *ngIf="!saving" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6" />
+          </svg>
+          {{ saving ? 'Saving…' : (editingId != null ? 'Save changes' : 'Add item') }}
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>

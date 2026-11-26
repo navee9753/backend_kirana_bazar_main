@@ -8,7 +8,7 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background: radial-gradient(circle at top, rgba(15, 118, 110, 0.12), transparent 45%), var(--background);
+  background: radial-gradient(circle at top, rgb(99 102 241 / 12%), transparent 45%), var(--background);
 }
 
 .login-card {

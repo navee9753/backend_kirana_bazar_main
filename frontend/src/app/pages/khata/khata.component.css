@@ -171,8 +171,8 @@
 }
 
 .search-field:focus-within {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgb(16 185 129 / 12%);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 18%);
 }
 
 .search-field svg {
@@ -204,8 +204,9 @@
 .entry-fields input:focus,
 .modal-fields input:focus,
 .modal-fields textarea:focus {
-  border-color: #10b981;
-  outline: 3px solid rgb(16 185 129 / 13%);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 18%);
+  outline: 0;
 }
 
 .customer-list {
@@ -235,12 +236,12 @@
 
 .customer-card:hover,
 .customer-card.selected {
-  border-color: #6ee7b7;
-  background: #f0fdf4;
+  border-color: #c7d2fe;
+  background: #eef2ff;
 }
 
 .customer-card.selected {
-  box-shadow: inset 3px 0 #059669;
+  box-shadow: inset 3px 0 #4f46e5;
 }
 
 .avatar {

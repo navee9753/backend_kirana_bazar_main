@@ -2,7 +2,8 @@
   <header class="page-head">
     <div>
       <p class="eyebrow">Settings / About</p>
-      <h2>About our store</h2>
+      <h2 class="page-title">About our store</h2>
+      <p class="page-subtitle">Store information, operations, and contact details.</p>
     </div>
     <button type="button" class="logout-button" (click)="logout()">
       <svg aria-hidden="true" class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -12,14 +13,14 @@
     </button>
   </header>
 
-  <section class="brand-hero" aria-labelledby="store-title">
+  <section class="brand-hero app-card" aria-labelledby="store-title">
     <p class="hero-kicker">Your neighborhood grocery partner</p>
     <h1 id="store-title">{{ storeName }}</h1>
     <p>{{ tagline }}</p>
   </section>
 
   <div class="profile-grid">
-    <article class="profile-card business-card">
+    <article class="profile-card business-card app-card">
       <section aria-labelledby="about-heading">
         <p class="section-kicker">Our story</p>
         <h3 id="about-heading">
@@ -53,7 +54,7 @@
       </section>
     </article>
 
-    <aside class="profile-card contact-card" aria-labelledby="contact-heading">
+    <aside class="profile-card contact-card app-card" aria-labelledby="contact-heading">
       <p class="section-kicker">We’re here to help</p>
       <h3 id="contact-heading">
         <svg aria-hidden="true" class="heading-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

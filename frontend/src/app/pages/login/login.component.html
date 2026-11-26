@@ -1,9 +1,9 @@
 <div class="login-page">
-  <div class="login-card">
+  <div class="login-card app-card">
     <div class="brand-header">
       <span class="brand-pill">Kirana</span>
-      <h1>StoreOps</h1>
-      <p>Manage stock, counters, and khata with a cleaner daily workflow.</p>
+      <h1 class="page-title">StoreOps</h1>
+      <p class="page-subtitle">Manage stock, counters, and khata with a cleaner daily workflow.</p>
     </div>
 
     <form class="login-form" (ngSubmit)="onSubmit()" [attr.aria-busy]="isLoggingIn">
@@ -14,16 +14,16 @@
 
       <label>
         <span>Phone number</span>
-        <input type="tel" [(ngModel)]="model.phoneNumber" name="phoneNumber" placeholder="9876543210" required [disabled]="isLoggingIn" />
+        <input class="form-input" type="tel" [(ngModel)]="model.phoneNumber" name="phoneNumber" placeholder="9876543210" required [disabled]="isLoggingIn" />
       </label>
 
       <label>
         <span>Password</span>
-        <input type="password" [(ngModel)]="model.password" name="password" placeholder="Enter password" required [disabled]="isLoggingIn" />
+        <input class="form-input" type="password" [(ngModel)]="model.password" name="password" placeholder="Enter password" required [disabled]="isLoggingIn" />
       </label>
 
       <p *ngIf="loginError" class="login-error" role="alert">{{ loginError }}</p>
-      <button type="submit" class="primary-button" [disabled]="isLoggingIn" [attr.aria-label]="isLoggingIn ? 'Logging in' : 'Login'">
+      <button type="submit" class="btn-primary" [disabled]="isLoggingIn" [attr.aria-label]="isLoggingIn ? 'Logging in' : 'Login'">
         <span *ngIf="isLoggingIn" class="login-spinner" aria-hidden="true"></span>
         <span>{{ isLoggingIn ? 'Logging in…' : 'Login' }}</span>
       </button>

@@ -179,9 +179,9 @@
 
 .search-field:focus-within,
 .category-filter select:focus {
-  border-color: #10b981;
+  border-color: #6366f1;
   outline: 0;
-  box-shadow: 0 0 0 3px rgb(16 185 129 / 13%);
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 18%);
 }
 
 .search-field > svg {
@@ -247,9 +247,9 @@
 .form-field select:focus,
 .form-field input:focus,
 .currency-input:focus-within {
-  border-color: #10b981;
+  border-color: #6366f1;
   outline: 0;
-  box-shadow: 0 0 0 3px rgb(16 185 129 / 13%);
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 18%);
 }
 
 .status-filters {
@@ -282,9 +282,9 @@
 }
 
 .status-filters button.active {
-  border-color: #a7f3d0;
-  background: #ecfdf5;
-  color: #047857;
+  border-color: #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
 }
 
 .status-filters svg {
@@ -874,7 +874,7 @@
 }
 
 .loose-toggle input:checked + .toggle-track {
-  background: #059669;
+  background: #4f46e5;
 }
 
 .loose-toggle input:checked + .toggle-track::after {
@@ -882,7 +882,7 @@
 }
 
 .loose-toggle input:focus-visible + .toggle-track {
-  outline: 3px solid rgb(16 185 129 / 25%);
+  outline: 3px solid rgb(99 102 241 / 30%);
   outline-offset: 2px;
 }
 

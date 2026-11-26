@@ -2,3 +2,69 @@
   display: block;
   min-height: 100vh;
 }
+
+.app-global-header {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 0.5rem clamp(1rem, 3vw, 2rem);
+  color: #0f172a;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 0.4rem 0.75rem;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.theme-toggle:hover {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.theme-toggle svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+:host-context(html.dark) .app-global-header {
+  border-color: #1f2937;
+  background: #111827;
+  color: #f8fafc;
+}
+
+:host-context(html.dark) .theme-toggle {
+  border-color: #334155;
+  background: #1f2937;
+  color: #e2e8f0;
+}
+
+:host-context(html.dark) .theme-toggle:hover {
+  border-color: #6366f1;
+  background: #312e81;
+  color: #e0e7ff;
+}

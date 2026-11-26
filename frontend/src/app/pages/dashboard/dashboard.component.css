@@ -399,14 +399,14 @@
   flex: 0 0 auto;
   align-items: center;
   gap: 5px;
-  color: #047857;
+  color: #4f46e5;
   font-size: 0.7rem;
   font-weight: 700;
   text-decoration: none;
 }
 
 .panel-link:hover {
-  color: #065f46;
+  color: #4338ca;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -569,11 +569,11 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  border: 1px solid #a7f3d0;
+  border: 1px solid #c7d2fe;
   border-radius: 9px;
-  background: #ecfdf5;
+  background: #4f46e5;
   padding: 6px 9px;
-  color: #047857;
+  color: #fff;
   font: inherit;
   font-size: 0.68rem;
   font-weight: 750;
@@ -582,8 +582,8 @@
 }
 
 .restock-button:hover:not(:disabled) {
-  border-color: #34d399;
-  background: #d1fae5;
+  border-color: #4338ca;
+  background: #4338ca;
 }
 
 .restock-button:disabled {
@@ -592,8 +592,8 @@
 }
 
 .restock-button svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .button-spinner {
@@ -798,8 +798,8 @@
 }
 
 .shortcut-emerald {
-  background: #ecfdf5;
-  color: #059669;
+  background: #eef2ff;
+  color: #4f46e5;
 }
 
 .shortcut-indigo {
@@ -868,9 +868,9 @@
 }
 
 .backup-button:hover {
-  border-color: #6ee7b7;
-  background: #ecfdf5;
-  color: #047857;
+  border-color: #a5b4fc;
+  background: #eef2ff;
+  color: #4338ca;
 }
 
 .backup-button svg {

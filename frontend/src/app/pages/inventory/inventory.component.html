@@ -2,12 +2,12 @@
   <header class="inventory-header">
     <div>
       <p class="inventory-eyebrow">NAVEEN KIRANA BAZAR</p>
-      <h1 id="inventory-title">Inventory &amp; Stock Catalog</h1>
-      <p class="inventory-subtitle">{{ inventory.length }} item{{ inventory.length === 1 ? '' : 's' }} in your catalog</p>
+      <h1 id="inventory-title" class="page-title">Inventory &amp; Stock Catalog</h1>
+      <p class="inventory-subtitle page-subtitle">{{ inventory.length }} item{{ inventory.length === 1 ? '' : 's' }} in your catalog</p>
     </div>
 
     <div class="inventory-actions">
-      <button type="button" class="button button-outline" (click)="exportInventory()">
+      <button type="button" class="button button-outline btn-secondary" (click)="exportInventory()">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3" />
         </svg>
@@ -32,7 +32,7 @@
         />
       </label>
 
-      <button type="button" class="button button-primary" (click)="openCreateForm()">
+      <button type="button" class="button btn-primary" (click)="openCreateForm()">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
         </svg>
@@ -51,13 +51,14 @@
   <div *ngIf="actionMessage" class="notice notice-success" role="status">{{ actionMessage }}</div>
   <div *ngIf="actionError" class="notice notice-error" role="alert">{{ actionError }}</div>
 
-  <section class="filter-card" aria-label="Search and filter inventory">
+  <section class="filter-card app-card" aria-label="Search and filter inventory">
     <label class="search-field">
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="7" />
         <path stroke-linecap="round" d="m20 20-4-4" />
       </svg>
       <input
+        class="form-input"
         type="search"
         name="inventorySearch"
         [(ngModel)]="searchInput"
@@ -70,7 +71,7 @@
 
     <label class="category-filter">
       <span>Category</span>
-      <select name="inventoryCategory" [(ngModel)]="selectedCategory" aria-label="Filter by category">
+      <select class="form-input" name="inventoryCategory" [(ngModel)]="selectedCategory" aria-label="Filter by category">
         <option>All Categories</option>
         <option *ngFor="let category of categories">{{ category }}</option>
       </select>
@@ -102,7 +103,7 @@
     <button type="button" class="text-button" (click)="load()">Try again</button>
   </div>
 
-  <section *ngIf="!loading && !loadError" class="catalog-card" aria-label="Inventory catalog">
+  <section *ngIf="!loading && !loadError" class="catalog-card app-card" aria-label="Inventory catalog">
     <div class="catalog-topline">
       <div>
         <h2>Product catalog</h2>
@@ -219,7 +220,7 @@
   </section>
 
   <section *ngIf="!loading && !loadError" class="mobile-inventory md:hidden divide-y divide-slate-100" aria-label="Inventory items">
-    <article *ngFor="let item of filteredInventory; trackBy: trackById" class="mobile-item-card">
+    <article *ngFor="let item of filteredInventory; trackBy: trackById" class="mobile-item-card app-card">
       <header class="mobile-item-heading">
         <div class="mobile-item-product">
           <span class="item-copy">
@@ -292,15 +293,15 @@
       <div class="drawer-fields">
         <label class="form-field field-wide">
           <span>Item name <b>*</b></span>
-          <input type="text" name="name" [(ngModel)]="form.name" placeholder="e.g. Basmati Rice" maxlength="255" required autocomplete="off" />
+          <input class="form-input" type="text" name="name" [(ngModel)]="form.name" placeholder="e.g. Basmati Rice" maxlength="255" required autocomplete="off" />
         </label>
         <label class="form-field">
           <span>Brand</span>
-          <input type="text" name="brand" [(ngModel)]="form.brand" placeholder="Brand name" maxlength="100" />
+          <input class="form-input" type="text" name="brand" [(ngModel)]="form.brand" placeholder="Brand name" maxlength="100" />
         </label>
         <label class="form-field">
           <span>Category <b>*</b></span>
-          <select name="category" [(ngModel)]="form.category" required>
+          <select class="form-input" name="category" [(ngModel)]="form.category" required>
             <option value="" disabled>Select a category</option>
             <option *ngIf="form.category && !categories.includes(form.category)" [value]="form.category">
               {{ form.category }} (current)
@@ -310,23 +311,23 @@
         </label>
         <label class="form-field field-wide">
           <span>Barcode / SKU</span>
-          <input type="text" name="barcode" [(ngModel)]="form.barcode" placeholder="Scan or enter barcode" maxlength="64" autocomplete="off" />
+          <input class="form-input" type="text" name="barcode" [(ngModel)]="form.barcode" placeholder="Scan or enter barcode" maxlength="64" autocomplete="off" />
         </label>
         <label class="form-field">
           <span>Current stock</span>
-          <input type="number" name="currentStock" [(ngModel)]="form.currentStock" min="0" step="0.001" inputmode="decimal" />
+          <input class="form-input" type="number" name="currentStock" [(ngModel)]="form.currentStock" min="0" step="0.001" inputmode="decimal" />
         </label>
         <label class="form-field">
           <span>Low-stock threshold</span>
-          <input type="number" name="minStockAlert" [(ngModel)]="form.minStockAlert" min="0" step="0.001" inputmode="decimal" />
+          <input class="form-input" type="number" name="minStockAlert" [(ngModel)]="form.minStockAlert" min="0" step="0.001" inputmode="decimal" />
         </label>
         <label class="form-field">
           <span>Buying price</span>
-          <span class="currency-input"><b>₹</b><input type="number" name="purchasePrice" [(ngModel)]="form.purchasePrice" min="0" step="0.01" inputmode="decimal" /></span>
+          <span class="currency-input"><b>₹</b><input class="form-input" type="number" name="purchasePrice" [(ngModel)]="form.purchasePrice" min="0" step="0.01" inputmode="decimal" /></span>
         </label>
         <label class="form-field">
           <span>MRP</span>
-          <span class="currency-input"><b>₹</b><input type="number" name="mrp" [(ngModel)]="form.mrp" min="0" step="0.01" inputmode="decimal" /></span>
+          <span class="currency-input"><b>₹</b><input class="form-input" type="number" name="mrp" [(ngModel)]="form.mrp" min="0" step="0.01" inputmode="decimal" /></span>
         </label>
         <label class="loose-toggle field-wide">
           <span class="toggle-copy">
@@ -341,8 +342,8 @@
       <p *ngIf="formError" class="notice notice-error form-notice" role="alert">{{ formError }}</p>
 
       <footer class="drawer-actions">
-        <button type="button" class="button button-outline" (click)="closeForm()" [disabled]="saving">Cancel</button>
-        <button type="submit" class="button button-primary" [disabled]="saving">
+        <button type="button" class="button button-outline btn-secondary" (click)="closeForm()" [disabled]="saving">Cancel</button>
+        <button type="submit" class="button btn-primary" [disabled]="saving">
           <svg *ngIf="saving" class="spinner" aria-hidden="true" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".25" stroke-width="3" />
             <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />

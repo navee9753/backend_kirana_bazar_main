@@ -2,8 +2,8 @@
   <header class="dashboard-header">
     <div>
       <p class="dashboard-eyebrow">NAVEEN KIRANA BAZAR · DAILY OVERVIEW</p>
-      <h1 id="dashboard-title">Business dashboard</h1>
-      <p class="dashboard-subtitle">A clear view of your inventory, collections, and daily priorities.</p>
+      <h1 id="dashboard-title" class="page-title">Business dashboard</h1>
+      <p class="dashboard-subtitle page-subtitle">A clear view of your inventory, collections, and daily priorities.</p>
     </div>
     <div class="live-status">
       <span class="live-dot" aria-hidden="true"></span>
@@ -12,7 +12,7 @@
   </header>
 
   <section class="kpi-grid grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5" aria-label="Financial and stock summary">
-    <article class="kpi-card p-3.5 sm:p-5">
+    <article class="kpi-card app-card p-3.5 sm:p-5">
       <div class="kpi-topline">
         <span class="kpi-icon kpi-emerald" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -26,7 +26,7 @@
       <p class="kpi-footnote">Valued at purchase price</p>
     </article>
 
-    <article class="kpi-card p-3.5 sm:p-5">
+    <article class="kpi-card app-card p-3.5 sm:p-5">
       <div class="kpi-topline">
         <span class="kpi-icon kpi-amber" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -40,7 +40,7 @@
       <p class="kpi-footnote">Outstanding khata balances</p>
     </article>
 
-    <article class="kpi-card p-3.5 sm:p-5">
+    <article class="kpi-card app-card p-3.5 sm:p-5">
       <div class="kpi-topline">
         <span class="kpi-icon kpi-rose" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -54,7 +54,7 @@
       <p class="kpi-footnote">Pending supplier payments</p>
     </article>
 
-    <article class="kpi-card p-3.5 sm:p-5">
+    <article class="kpi-card app-card p-3.5 sm:p-5">
       <div class="kpi-topline">
         <span class="kpi-icon kpi-slate" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -108,7 +108,7 @@
   <div *ngIf="restockError" class="dashboard-notice error-notice" role="alert">{{ restockError }}</div>
 
   <section class="workspace-grid" aria-label="Daily action workspace">
-    <section class="dashboard-panel restock-panel" aria-labelledby="restock-heading">
+    <section class="dashboard-panel restock-panel app-card" aria-labelledby="restock-heading">
       <header class="panel-header">
         <div class="panel-title-group">
           <span class="panel-icon panel-icon-amber" aria-hidden="true">
@@ -160,39 +160,6 @@
                     <small>{{ product.brand || product.category || 'Product' }}</small>
                   </span>
                 </div>
-                <div *ngIf="!loading && lowStockProducts.length" class="restock-mobile-list md:hidden divide-y divide-slate-100">
-                  <article *ngFor="let product of lowStockProducts" class="restock-mobile-card">
-                    <div class="restock-mobile-product">
-                      <span class="product-avatar">{{ product.name.charAt(0) || 'P' }}</span>
-                      <span class="product-text">
-                        <strong>{{ product.name }}</strong>
-                        <small>{{ product.brand || product.category || 'Product' }}</small>
-                      </span>
-                    </div>
-                    <div class="restock-mobile-details">
-                      <span class="stock-value">
-                        {{ formatStock(product) }}
-                        <span *ngIf="product.isLooseItem">Kg</span>
-                        <span *ngIf="!product.isLooseItem && product.unit">{{ product.unit }}</span>
-                      </span>
-                      <span *ngIf="isOutOfStock(product)" class="status-pill status-pill-out">
-                        <span class="status-dot"></span>Out of Stock
-                      </span>
-                      <span *ngIf="!isOutOfStock(product)" class="status-pill status-pill-low">
-                        <span class="status-dot"></span>Low Stock
-                      </span>
-                      <button type="button" class="restock-button"
-                              [disabled]="restockingProductId !== null"
-                              (click)="restock(product)">
-                        <svg *ngIf="restockingProductId !== product.id" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
-                        </svg>
-                        <span *ngIf="restockingProductId === product.id" class="button-spinner" aria-hidden="true"></span>
-                        {{ restockingProductId === product.id ? 'Updating…' : '+10 Restock' }}
-                      </button>
-                    </div>
-                  </article>
-                </div>
               </td>
               <td class="stock-value">
                 {{ formatStock(product) }}
@@ -225,9 +192,42 @@
           </tbody>
         </table>
       </div>
+      <div *ngIf="!loading && lowStockProducts.length" class="restock-mobile-list md:hidden divide-y divide-slate-100">
+        <article *ngFor="let product of lowStockProducts" class="restock-mobile-card app-card">
+          <div class="restock-mobile-product">
+            <span class="product-avatar">{{ product.name.charAt(0) || 'P' }}</span>
+            <span class="product-text">
+              <strong>{{ product.name }}</strong>
+              <small>{{ product.brand || product.category || 'Product' }}</small>
+            </span>
+          </div>
+          <div class="restock-mobile-details">
+            <span class="stock-value">
+              {{ formatStock(product) }}
+              <span *ngIf="product.isLooseItem">Kg</span>
+              <span *ngIf="!product.isLooseItem && product.unit">{{ product.unit }}</span>
+            </span>
+            <span *ngIf="isOutOfStock(product)" class="status-pill status-pill-out">
+              <span class="status-dot"></span>Out of Stock
+            </span>
+            <span *ngIf="!isOutOfStock(product)" class="status-pill status-pill-low">
+              <span class="status-dot"></span>Low Stock
+            </span>
+            <button type="button" class="restock-button btn-primary"
+                    [disabled]="restockingProductId !== null"
+                    (click)="restock(product)">
+              <svg *ngIf="restockingProductId !== product.id" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14" />
+              </svg>
+              <span *ngIf="restockingProductId === product.id" class="button-spinner" aria-hidden="true"></span>
+              {{ restockingProductId === product.id ? 'Updating…' : '+10 Restock' }}
+            </button>
+          </div>
+        </article>
+      </div>
     </section>
 
-    <section class="dashboard-panel khata-panel" aria-labelledby="khata-heading">
+    <section class="dashboard-panel khata-panel app-card" aria-labelledby="khata-heading">
       <header class="panel-header">
         <div class="panel-title-group">
           <span class="panel-icon panel-icon-rose" aria-hidden="true">
@@ -293,7 +293,7 @@
       <h2>Fast counter shortcuts</h2>
     </div>
     <div class="shortcut-links">
-      <a routerLink="/billing" class="shortcut-card">
+      <a routerLink="/billing" class="shortcut-card app-card">
         <span class="shortcut-icon shortcut-emerald" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 5h16v15H4zM8 3v4m8-4v4M8 11h3m2 0h3m-8 4h3m2 0h3" />
@@ -305,7 +305,7 @@
         </svg>
       </a>
 
-      <a routerLink="/scan-inspect" class="shortcut-card">
+      <a routerLink="/scan-inspect" class="shortcut-card app-card">
         <span class="shortcut-icon shortcut-indigo" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V5a1 1 0 0 1 1-1h3m8 0h3a1 1 0 0 1 1 1v3m0 8v3a1 1 0 0 1-1 1h-3m-8 0H5a1 1 0 0 1-1-1v-3M7 9v6m3-6v6m3-6v6m3-6v6" />
@@ -317,7 +317,7 @@
         </svg>
       </a>
 
-      <a routerLink="/suppliers" class="shortcut-card">
+      <a routerLink="/suppliers" class="shortcut-card app-card">
         <span class="shortcut-icon shortcut-amber" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v11H3zM14 11h4l3 3v4h-7zM7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />

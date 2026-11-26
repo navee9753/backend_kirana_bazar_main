@@ -2,18 +2,28 @@
   <header class="page-head">
     <div>
       <p class="eyebrow">Point of sale</p>
-      <h2>Billing</h2>
+      <h2 class="page-title">Billing</h2>
+      <p class="page-subtitle">Build a bill, review the basket, and choose a payment method.</p>
     </div>
     <div class="page-actions">
-      <button type="button" class="utility-button" (click)="openUtility('loose')">
-        ⚖️ Loose item calculator
+      <button type="button" class="utility-button btn-secondary" (click)="openUtility('loose')">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m-5-3 5 3 5-3M7 6l5-3 5 3M5 8l-3 4h6L5 8Zm14 0-3 4h6l-3-4Z" />
+        </svg>
+        Loose item calculator
       </button>
-      <button type="button" class="utility-button" (click)="openUtility('upi')">
-        ▦ UPI QR generator
+      <button type="button" class="utility-button btn-secondary" (click)="openUtility('upi')">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="4" width="6" height="6" rx="1" />
+          <rect x="14" y="4" width="6" height="6" rx="1" />
+          <rect x="4" y="14" width="6" height="6" rx="1" />
+          <path stroke-linecap="round" d="M14 14h2v2h-2zm4 0h2m-6 4h2m2 0h2v2" />
+        </svg>
+        UPI QR generator
       </button>
       <button
         type="button"
-        class="new-bill-button"
+        class="new-bill-button btn-primary"
         [disabled]="settling"
         (click)="newBill()"
       >
@@ -23,12 +33,16 @@
   </header>
 
   <div class="billing-grid">
-    <section class="catalog-panel" aria-label="Product catalog">
+    <section class="catalog-panel app-card" aria-label="Product catalog">
       <div class="catalog-toolbar">
         <label class="search-box">
-          <span aria-hidden="true">⌕</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="7" />
+            <path stroke-linecap="round" d="m20 20-4-4" />
+          </svg>
           <input
             type="search"
+            class="form-input"
             name="productSearch"
             placeholder="Search products by name or brand"
             [(ngModel)]="searchTerm"
@@ -43,7 +57,12 @@
           [class.selected]="looseOnly"
           [attr.aria-pressed]="looseOnly"
           (click)="looseOnly = !looseOnly; selectedCategory = 'All'"
-        >⚖️ Loose Staples</button>
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m-5-3 5 3 5-3M7 6l5-3 5 3" />
+          </svg>
+          Loose Staples
+        </button>
         <div class="category-chips" aria-label="Filter products by category">
           <button
             type="button"
@@ -69,7 +88,7 @@
         <button
           *ngFor="let product of filteredProducts"
           type="button"
-          class="product-card"
+          class="product-card app-card"
           [disabled]="product.currentStock <= 0 || settling"
           (click)="selectProduct(product)"
         >
@@ -91,13 +110,17 @@
       </p>
     </section>
 
-    <aside id="billing-checkout" class="basket-panel" aria-label="Current bill">
+    <aside id="billing-checkout" class="basket-panel app-card" aria-label="Current bill">
       <div class="basket-heading">
         <div>
           <p class="eyebrow">Current transaction</p>
           <h3>Digital Basket <span class="item-count">{{ cart.length }}</span></h3>
         </div>
-        <span class="basket-icon" aria-hidden="true">▤</span>
+        <span class="basket-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 3h14v18l-7-4-7 4V3Zm4 5h6m-6 4h6" />
+          </svg>
+        </span>
       </div>
 
       <div *ngIf="cart.length; else emptyBasket" class="basket-content">
@@ -189,6 +212,7 @@
             <span class="input-with-prefix">
               <span>₹</span>
               <input
+                class="form-input"
                 type="number"
                 name="customDiscount"
                 min="0"
@@ -209,7 +233,7 @@
           </div>
 
           <a *ngIf="cart.length" href="#billing-checkout"
-             class="mobile-checkout-bar lg:hidden fixed bottom-16 inset-x-3 z-40 bg-emerald-600 text-white rounded-xl p-3 shadow-lg">
+             class="mobile-checkout-bar lg:hidden fixed bottom-16 inset-x-3 z-40 bg-indigo-600 text-white rounded-xl p-3 shadow-lg">
             <span class="mobile-checkout-count">{{ cart.length }} item{{ cart.length === 1 ? '' : 's' }}</span>
             <span class="mobile-checkout-total">{{ formatCurrency(netPayable) }}</span>
             <span class="mobile-checkout-action">Checkout <span aria-hidden="true">→</span></span>
@@ -260,6 +284,7 @@
                 <label for="calculatorWeight">Weight to sell</label>
                 <div class="calculator-weight-entry">
                   <input
+                    class="form-input"
                     id="calculatorWeight"
                     type="number"
                     name="calculatorWeight"
@@ -290,6 +315,7 @@
                 <div class="calculator-amount-entry">
                   <span aria-hidden="true">₹</span>
                   <input
+                    class="form-input"
                     id="calculatorAmount"
                     type="number"
                     name="calculatorAmount"
@@ -317,8 +343,8 @@
               </p>
               <p *ngIf="calculatorError" class="field-error" role="alert">{{ calculatorError }}</p>
               <footer class="calculator-actions">
-                <button type="button" class="secondary-button" (click)="closeCalculator()">Cancel</button>
-                <button type="button" class="primary-button" [disabled]="!calculatorCanAdd" (click)="addLooseItemToCart()">
+                <button type="button" class="secondary-button btn-secondary" (click)="closeCalculator()">Cancel</button>
+                <button type="button" class="btn-primary" [disabled]="!calculatorCanAdd" (click)="addLooseItemToCart()">
                   Add to Bill · {{ formatCurrency(calculatorCharge) }}
                 </button>
               </footer>
@@ -331,6 +357,7 @@
           <span class="input-with-prefix cash-input">
             <span>₹</span>
             <input
+              class="form-input"
               id="cashReceived"
               type="number"
               name="cashReceived"
@@ -354,13 +381,23 @@
 
         <div class="settlement-actions">
           <button type="button" class="settlement-button cash-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="settle('Cash')">
-            <span>💵</span> Cash Paid
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="6" width="18" height="12" rx="2" /><circle cx="12" cy="12" r="3" />
+              <path stroke-linecap="round" d="M7 9h.01M17 15h.01" />
+            </svg>
+            Cash Paid
           </button>
           <button type="button" class="settlement-button upi-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="openUpiPaymentModal()">
-            <span>📱</span> UPI / Online
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="6" y="2.5" width="12" height="19" rx="2" /><path stroke-linecap="round" d="M10 18h4" />
+            </svg>
+            UPI / Online
           </button>
           <button type="button" class="settlement-button khata-button" [disabled]="settling || !cart.length || !discountIsValid" (click)="openKhataCheckout()">
-            <span>📓</span> Add to Udhar Khata
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3h14v18l-7-4-7 4V3Zm4 5h6m-6 4h6" />
+            </svg>
+            Add to Udhar Khata
           </button>
         </div>
         <p *ngIf="settling" class="settling-message" role="status">Updating inventory and completing bill…</p>
@@ -368,7 +405,11 @@
 
       <ng-template #emptyBasket>
         <div class="empty-basket">
-          <span aria-hidden="true">＋</span>
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" d="M12 5v14m-7-7h14" />
+            </svg>
+          </span>
           <strong>Your basket is empty</strong>
           <p>Choose products from the catalog to start a bill.</p>
         </div>
@@ -403,13 +444,14 @@
         <div class="utility-form">
           <label>
             Item name
-            <input type="text" name="utilityItemName" [(ngModel)]="utilityItemName" placeholder="e.g. Rice" />
+            <input class="form-input" type="text" name="utilityItemName" [(ngModel)]="utilityItemName" placeholder="e.g. Rice" />
           </label>
           <label>
             Item price per Kg
             <span class="utility-input">
               <span aria-hidden="true">₹</span>
               <input
+                class="form-input"
                 type="number"
                 name="utilityPricePerKg"
                 min="0"
@@ -440,6 +482,7 @@
             Weight to sell
             <span class="utility-input">
               <input
+                class="form-input"
                 type="number"
                 name="utilityWeight"
                 min="0"
@@ -448,7 +491,7 @@
                 [(ngModel)]="utilityWeightInput"
                 placeholder="Enter weight"
               />
-              <select name="utilityWeightUnit" [(ngModel)]="utilityWeightUnit" aria-label="Weight unit">
+              <select class="form-input" name="utilityWeightUnit" [(ngModel)]="utilityWeightUnit" aria-label="Weight unit">
                 <option value="g">g</option>
                 <option value="kg">Kg</option>
               </select>
@@ -460,6 +503,7 @@
               <span class="utility-input">
                 <span aria-hidden="true">₹</span>
                 <input
+                  class="form-input"
                   type="number"
                   name="utilityAmount"
                   min="0"
@@ -491,6 +535,7 @@
           <label>
             UPI ID
             <input
+              class="form-input"
               type="text"
               name="utilityUpiId"
               [(ngModel)]="utilityUpiId"
@@ -503,6 +548,7 @@
             <span class="utility-input">
               <span aria-hidden="true">₹</span>
               <input
+                class="form-input"
                 type="number"
                 name="utilityUpiAmount"
                 min="0"
@@ -532,7 +578,7 @@
       </ng-template>
 
       <footer class="calculator-actions">
-        <button type="button" class="secondary-button" (click)="closeUtility()">Close</button>
+        <button type="button" class="secondary-button btn-secondary" (click)="closeUtility()">Close</button>
       </footer>
     </section>
   </div>
@@ -582,10 +628,15 @@
       <p class="upi-manual-confirmation">Confirm only after verifying the payment was received.</p>
       <button
         type="button"
-        class="upi-confirm-button"
+        class="upi-confirm-button btn-primary"
         [disabled]="settling"
         (click)="confirmUpiPayment()"
-      >✅ Payment Received &amp; Complete Bill</button>
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6" />
+        </svg>
+        Payment Received &amp; Complete Bill
+      </button>
     </section>
   </div>
 
@@ -615,8 +666,10 @@
       <p class="khata-selector-total">Bill total <strong>{{ formatCurrency(netPayable) }}</strong></p>
 
       <label class="khata-customer-search">
-        <span aria-hidden="true">⌕</span>
-        <input type="search" name="khataCustomerSearch" [(ngModel)]="khataCustomerSearch"
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7" /><path stroke-linecap="round" d="m20 20-4-4" />
+        </svg>
+        <input class="form-input" type="search" name="khataCustomerSearch" [(ngModel)]="khataCustomerSearch"
                placeholder="Search customer name or phone" aria-label="Search Khata customers">
       </label>
 
@@ -655,8 +708,8 @@
       </div>
 
       <footer class="khata-selector-actions">
-        <button type="button" class="secondary-button" [disabled]="settling" (click)="closeKhataSelector()">Cancel</button>
-        <button type="button" class="primary-button"
+        <button type="button" class="secondary-button btn-secondary" [disabled]="settling" (click)="closeKhataSelector()">Cancel</button>
+        <button type="button" class="btn-primary"
                 [disabled]="settling || !selectedKhataCustomerId || khataCustomersLoading"
                 (click)="confirmKhataCheckout()">
           {{ settling ? 'Completing bill…' : 'Confirm credit sale' }}

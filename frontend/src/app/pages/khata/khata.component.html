@@ -2,10 +2,10 @@
   <header class="page-header">
     <div>
       <p class="eyebrow">Customer accounts</p>
-      <h1>Udhar Khata</h1>
+      <h1 class="page-title">Udhar Khata</h1>
       <p class="page-subtitle">A clear, itemized record of credit and payments.</p>
     </div>
-    <button type="button" class="button button-primary" (click)="openCustomerForm()">
+    <button type="button" class="button btn-primary" (click)="openCustomerForm()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path d="M12 5v14M5 12h14"/>
       </svg>
@@ -14,7 +14,7 @@
   </header>
 
   <div class="kpi-grid grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-    <article class="kpi-card p-3.5 sm:p-5">
+    <article class="kpi-card app-card p-3.5 sm:p-5">
       <span class="kpi-icon rose-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 7h18v13H3zM3 7l2-4h14l2 4M7 12h4"/>
@@ -22,7 +22,7 @@
       </span>
       <div><p>Total market udhar owed</p><strong class="text-lg sm:text-2xl font-extrabold">{{ formatCurrency(totalOutstanding) }}</strong></div>
     </article>
-    <article class="kpi-card p-3.5 sm:p-5">
+    <article class="kpi-card app-card p-3.5 sm:p-5">
       <span class="kpi-icon emerald-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6m3-3h-6"/>
@@ -30,7 +30,7 @@
       </span>
       <div><p>Active customers</p><strong class="text-lg sm:text-2xl font-extrabold">{{ customers.length }}</strong></div>
     </article>
-    <article class="kpi-card p-3.5 sm:p-5">
+    <article class="kpi-card app-card p-3.5 sm:p-5">
       <span class="kpi-icon amber-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 3 2.8 19h18.4L12 3Z"/><path d="M12 9v4m0 3h.01"/>
@@ -46,7 +46,7 @@
   </div>
 
   <div class="workspace-grid">
-    <section class="panel customer-panel" [class.mobile-hidden]="selectedCustomer !== null" aria-label="Khata customers">
+    <section class="panel customer-panel app-card" [class.mobile-hidden]="selectedCustomer !== null" aria-label="Khata customers">
       <header class="panel-heading">
         <div><h2>Customers</h2><p>Select a customer to open their passbook.</p></div>
         <span class="count-pill">{{ filteredCustomers.length }}</span>
@@ -56,7 +56,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>
         </svg>
-        <input type="search" name="customerSearch" [(ngModel)]="searchTerm"
+        <input class="form-input" type="search" name="customerSearch" [(ngModel)]="searchTerm"
                placeholder="Search name or phone" aria-label="Search customers by name or phone">
       </label>
 
@@ -94,7 +94,7 @@
       </div>
     </section>
 
-    <section class="panel passbook-panel" [class.mobile-hidden]="selectedCustomer === null" aria-label="Customer passbook">
+    <section class="panel passbook-panel app-card" [class.mobile-hidden]="selectedCustomer === null" aria-label="Customer passbook">
       <ng-container *ngIf="selectedCustomer as customer; else selectCustomerPrompt">
         <button type="button" class="mobile-back-button" (click)="selectedCustomer = null; transactions = []; transactionFormType = null">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -153,19 +153,19 @@
           </div>
           <div class="entry-fields">
             <label>Amount (₹)
-              <input type="number" name="transactionAmount" min="0.01" step="0.01"
+              <input class="form-input" type="number" name="transactionAmount" min="0.01" step="0.01"
                      [(ngModel)]="transactionAmount" required placeholder="0.00">
             </label>
             <label>Notes
-              <input type="text" name="transactionNotes" maxlength="2000"
+              <input class="form-input" type="text" name="transactionNotes" maxlength="2000"
                      [(ngModel)]="transactionNotes"
                      [placeholder]="transactionFormType === 'UDHAR_GIVEN' ? 'e.g. Loose ration' : 'e.g. Paid via PhonePe'">
             </label>
           </div>
           <p *ngIf="transactionError" class="form-error" role="alert">{{ transactionError }}</p>
           <div class="form-actions">
-            <button type="button" class="button button-secondary" (click)="cancelTransaction()" [disabled]="savingTransaction">Cancel</button>
-            <button type="submit" class="button button-primary" [disabled]="savingTransaction">
+            <button type="button" class="button button-secondary btn-secondary" (click)="cancelTransaction()" [disabled]="savingTransaction">Cancel</button>
+            <button type="submit" class="button btn-primary" [disabled]="savingTransaction">
               {{ savingTransaction ? 'Saving…' : 'Save entry' }}
             </button>
           </div>
@@ -218,7 +218,7 @@
         </div>
       </ng-container>
       <ng-template #selectCustomerPrompt>
-        <div class="select-prompt">
+        <div class="select-prompt app-card">
           <span class="prompt-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19 8v6m3-3h-6"/>
@@ -226,14 +226,14 @@
           </span>
           <h2>Select a customer</h2>
           <p>Choose a customer from the list to view their transactions and record payments.</p>
-          <button type="button" class="button button-primary" (click)="openCustomerForm()">Add customer</button>
+          <button type="button" class="button btn-primary" (click)="openCustomerForm()">Add customer</button>
         </div>
       </ng-template>
     </section>
   </div>
 
   <div *ngIf="showCustomerForm" class="modal-backdrop" role="presentation" (click)="closeCustomerForm()">
-    <section class="customer-modal" role="dialog" aria-modal="true" aria-labelledby="newCustomerTitle" (click)="$event.stopPropagation()">
+    <section class="customer-modal app-card" role="dialog" aria-modal="true" aria-labelledby="newCustomerTitle" (click)="$event.stopPropagation()">
       <header class="modal-heading">
         <div><p class="eyebrow">Khata profile</p><h2 id="newCustomerTitle">Add new customer</h2></div>
         <button type="button" class="icon-button" aria-label="Close dialog" (click)="closeCustomerForm()">×</button>
@@ -241,24 +241,24 @@
       <form (ngSubmit)="saveCustomer()">
         <div class="modal-fields">
           <label>Customer name
-            <input type="text" name="newCustomerName" [(ngModel)]="customerForm.customerName" maxlength="255" required>
+            <input class="form-input" type="text" name="newCustomerName" [(ngModel)]="customerForm.customerName" maxlength="255" required>
           </label>
           <label>Phone number
-            <input type="tel" name="newCustomerPhone" [(ngModel)]="customerForm.phoneNumber"
+            <input class="form-input" type="tel" name="newCustomerPhone" [(ngModel)]="customerForm.phoneNumber"
                    inputmode="numeric" maxlength="15" placeholder="10 to 15 digits" required>
           </label>
           <label>Address
-            <textarea name="newCustomerAddress" [(ngModel)]="customerForm.address" rows="2" maxlength="2000"></textarea>
+            <textarea class="form-input" name="newCustomerAddress" [(ngModel)]="customerForm.address" rows="2" maxlength="2000"></textarea>
           </label>
           <label>Credit limit (₹)
-            <input type="number" name="newCustomerLimit" [(ngModel)]="customerForm.creditLimit"
+            <input class="form-input" type="number" name="newCustomerLimit" [(ngModel)]="customerForm.creditLimit"
                    min="0" step="0.01" required>
           </label>
         </div>
         <p *ngIf="customerError" class="form-error" role="alert">{{ customerError }}</p>
         <footer class="form-actions">
-          <button type="button" class="button button-secondary" (click)="closeCustomerForm()" [disabled]="savingCustomer">Cancel</button>
-          <button type="submit" class="button button-primary" [disabled]="savingCustomer">
+          <button type="button" class="button button-secondary btn-secondary" (click)="closeCustomerForm()" [disabled]="savingCustomer">Cancel</button>
+          <button type="submit" class="button btn-primary" [disabled]="savingCustomer">
             {{ savingCustomer ? 'Saving…' : 'Create customer' }}
           </button>
         </footer>

@@ -69,6 +69,13 @@
   cursor: pointer;
 }
 
+.utility-button svg,
+.category-chip svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
 .utility-button:hover {
   border-color: var(--brand-500);
   background: var(--panel-alt);
@@ -126,9 +133,10 @@
   color: var(--slate-500);
 }
 
-.search-box > span {
-  font-size: 1.55rem;
-  line-height: 1;
+.search-box > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
 }
 
 .search-box input,
@@ -308,6 +316,11 @@
   background: var(--panel-alt);
   color: var(--brand-700);
   font-size: 1.25rem;
+}
+
+.basket-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .item-count {
@@ -730,17 +743,17 @@
   min-height: 50px;
   border: 0;
   border-radius: 12px;
-  background: #059669;
+  background: #4f46e5;
   color: #fff;
   padding: 12px 16px;
   font: inherit;
   font-weight: 800;
-  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
+  box-shadow: 0 4px 10px rgb(79 70 229 / 20%);
   cursor: pointer;
 }
 
 .upi-confirm-button:hover:not(:disabled) {
-  background: #047857;
+  background: #4338ca;
 }
 
 .upi-confirm-button:disabled {
@@ -999,6 +1012,12 @@
   touch-action: manipulation;
 }
 
+.settlement-button svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
+}
+
 .settlement-button:hover:not(:disabled),
 .new-bill-button:hover:not(:disabled) {
   filter: brightness(1.05);
@@ -1013,11 +1032,11 @@
 }
 
 .upi-button {
-  background: #365dc5;
+  background: #4f46e5;
 }
 
 .khata-button {
-  background: #a46118;
+  background: #e11d48;
 }
 
 .field-error {
@@ -1056,6 +1075,11 @@
   background: var(--panel-alt);
   color: var(--brand-700);
   font-size: 1.8rem;
+}
+
+.empty-basket svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .empty-basket strong {
@@ -1131,8 +1155,10 @@
   color: var(--slate-500);
 }
 
-.khata-customer-search > span {
-  font-size: 1.3rem;
+.khata-customer-search > svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 auto;
 }
 
 .khata-customer-search input {
@@ -1276,7 +1302,7 @@
     justify-content: space-between;
     gap: 8px;
     border-radius: 12px;
-    background: #059669;
+    background: #4f46e5;
     padding: 9px 12px;
     color: #fff;
     box-shadow: 0 8px 24px rgb(15 23 42 / 20%);

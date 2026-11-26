@@ -5,7 +5,7 @@ html {
   background: var(--background);
 }
 
-html[data-theme="dark"] {
+html.dark {
   color-scheme: dark;
 }
 

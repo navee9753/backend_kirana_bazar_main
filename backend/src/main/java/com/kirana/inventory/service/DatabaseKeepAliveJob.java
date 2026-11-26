@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class DatabaseKeepAliveJob {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseKeepAliveJob.class);
-    private static final long FIFTEEN_MINUTES_MS = 15 * 60 * 1000L;
+    private static final long FIFTEEN_MINUTES_MS = 14 * 60 * 1000L;
 
     private final JdbcTemplate jdbcTemplate;
 
